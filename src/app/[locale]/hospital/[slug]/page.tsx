@@ -6,6 +6,7 @@ import { getAllSlugs, getHospitalBySlug } from "@/lib/db";
 import { Badge } from "@/components/Badge";
 import { Icon } from "@/components/Icon";
 import { HospitalLogo } from "@/components/HospitalLogo";
+import { HospitalMap } from "@/components/HospitalMap";
 import { mapDeepLinks, sizeCategory } from "@/lib/hospital-util";
 import { tKind, tSido, tSiggu } from "@/lib/i18n-dict";
 import type { Hospital } from "@/lib/types";
@@ -389,24 +390,18 @@ export default async function HospitalPage({ params }: { params: Params }) {
           </div>
 
           {h.y_pos != null && h.x_pos != null && (
-            <div className="cm-mini-map">
-              <div style={{
-                position: "absolute", inset: 0,
-                backgroundImage:
-                  "linear-gradient(rgba(148,163,184,.18) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,.18) 1px, transparent 1px)",
-                backgroundSize: "30px 30px",
-                backgroundColor: "#eaf3fa",
-              }} />
-              <div style={{
-                position: "absolute", top: "50%", left: "50%",
-                transform: "translate(-50%, -100%)",
-                background: "var(--cm-primary)", color: "#fff",
-                borderRadius: "999px 999px 999px 4px",
-                padding: "6px 12px", fontSize: 12, fontWeight: 700,
-                border: "2px solid #fff",
-              }}>
-                {h.yadm_nm}
-              </div>
+            <div className="cm-mini-map" style={{ height: 200 }}>
+              <HospitalMap
+                pins={[{
+                  id: h.id,
+                  lat: h.y_pos,
+                  lng: h.x_pos,
+                  label: "📍",
+                  popup: h.yadm_nm,
+                }]}
+                height={200}
+                zoom={15}
+              />
             </div>
           )}
 

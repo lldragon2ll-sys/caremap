@@ -4,6 +4,8 @@ import { useTranslations, useLocale } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
 import NextLink from "next/link";
 import { Icon } from "./Icon";
+import { LOCALE_LABELS, tSpecialty } from "@/lib/i18n-dict";
+import { routing } from "@/i18n/routing";
 
 const SITE_NAME = process.env.NEXT_PUBLIC_SITE_NAME ?? "CAREMAP";
 
@@ -12,18 +14,21 @@ export function TopNav() {
   const locale = useLocale();
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [langOpen, setLangOpen] = useState(false);
 
   const NAV_ITEMS = [
     { href: "/", label: t("home") },
     { href: "/search", label: t("search") },
-    { href: `/search?q=${encodeURIComponent(locale === "en" ? "Plastic Surgery" : "성형외과")}`, label: t("plasticSurgery") },
-    { href: `/search?q=${encodeURIComponent(locale === "en" ? "Dermatology" : "피부과")}`, label: t("dermatology") },
-    { href: `/search?q=${encodeURIComponent(locale === "en" ? "Dental" : "치과")}`, label: t("dental") },
+    { href: `/search?q=${encodeURIComponent(tSpecialty("성형외과", locale))}`, label: t("plasticSurgery") },
+    { href: `/search?q=${encodeURIComponent(tSpecialty("피부과", locale))}`, label: t("dermatology") },
+    { href: `/search?q=${encodeURIComponent(tSpecialty("치과", locale))}`, label: t("dental") },
   ];
 
-  // 다른 언어 URL: 현재 pathname을 유지하면서 locale만 전환
-  const otherLocale = locale === "ko" ? "en" : "ko";
-  const otherLocaleLabel = locale === "ko" ? "EN" : "한국어";
+  // 다른 로케일로 전환할 URL 생성 (next-intl localePrefix=as-needed)
+  const buildLocaleHref = (target: string) => {
+    if (target === routing.defaultLocale) return pathname;
+    return `/${target}${pathname}`;
+  };
 
   return (
     <header className="cm-nav">
@@ -37,16 +42,63 @@ export function TopNav() {
         ))}
       </nav>
       <span className="spacer" />
-      <NextLink
-        href={otherLocale === "ko" ? pathname : `/${otherLocale}${pathname}`}
-        className="lang-pill desktop-only"
-        aria-label="언어 전환"
-        prefetch={false}
-        style={{ textDecoration: "none" }}
-      >
-        <Icon name="globe" size={13} />
-        {otherLocaleLabel}
-      </NextLink>
+
+      {/* 언어 드롭다운 */}
+      <div className="lang-dropdown desktop-only" style={{ position: "relative" }}>
+        <button
+          type="button"
+          className="lang-pill"
+          aria-haspopup="menu"
+          aria-expanded={langOpen}
+          onClick={() => setLangOpen((v) => !v)}
+          onBlur={(e) => {
+            // 다음 포커스 대상이 dropdown 안이면 유지
+            if (!e.currentTarget.parentElement?.contains(e.relatedTarget as Node)) {
+              setTimeout(() => setLangOpen(false), 100);
+            }
+          }}
+        >
+          <Icon name="globe" size={13} />
+          {LOCALE_LABELS[locale] ?? locale.toUpperCase()}
+          <Icon name="chev" size={11} />
+        </button>
+        {langOpen && (
+          <div
+            className="lang-menu"
+            role="menu"
+            style={{
+              position: "absolute", top: "calc(100% + 8px)", right: 0,
+              background: "#fff", border: "1px solid var(--cm-line)",
+              borderRadius: 10, padding: 6,
+              boxShadow: "var(--cm-shadow)",
+              zIndex: 100, minWidth: 140,
+              display: "flex", flexDirection: "column", gap: 2,
+            }}
+          >
+            {routing.locales.map((l) => (
+              <NextLink
+                key={l}
+                href={buildLocaleHref(l)}
+                prefetch={false}
+                onClick={() => setLangOpen(false)}
+                style={{
+                  padding: "8px 10px",
+                  borderRadius: 6,
+                  fontSize: 13.5,
+                  fontWeight: l === locale ? 700 : 500,
+                  color: l === locale ? "var(--cm-primary)" : "var(--cm-ink)",
+                  textDecoration: "none",
+                  background: l === locale ? "var(--cm-primary-50)" : "transparent",
+                }}
+                role="menuitem"
+              >
+                {LOCALE_LABELS[l]}
+              </NextLink>
+            ))}
+          </div>
+        )}
+      </div>
+
       <Link
         href="/search"
         className="btn-primary"
@@ -83,14 +135,27 @@ export function TopNav() {
                 {n.label}
               </Link>
             ))}
-            <NextLink
-              href={otherLocale === "ko" ? pathname : `/${otherLocale}${pathname}`}
-              onClick={() => setMobileOpen(false)}
-              prefetch={false}
-              style={{ borderTop: "1px solid var(--cm-line)", marginTop: 4, paddingTop: 8 }}
-            >
-              {otherLocaleLabel}
-            </NextLink>
+            <div style={{ borderTop: "1px solid var(--cm-line)", marginTop: 8, paddingTop: 8 }}>
+              <div style={{ fontSize: 12, color: "var(--cm-text-2)", fontWeight: 600, padding: "4px 8px" }}>
+                Language
+              </div>
+              {routing.locales.map((l) => (
+                <NextLink
+                  key={l}
+                  href={buildLocaleHref(l)}
+                  prefetch={false}
+                  onClick={() => setMobileOpen(false)}
+                  style={{
+                    padding: "10px 8px",
+                    color: l === locale ? "var(--cm-primary)" : "var(--cm-ink)",
+                    fontWeight: l === locale ? 700 : 500,
+                    display: "block",
+                  }}
+                >
+                  {LOCALE_LABELS[l]}
+                </NextLink>
+              ))}
+            </div>
           </nav>
         </>
       )}

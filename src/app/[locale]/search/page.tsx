@@ -6,6 +6,7 @@ import { searchHospitals } from "@/lib/db";
 import { Badge } from "@/components/Badge";
 import { Icon } from "@/components/Icon";
 import { HospitalLogo } from "@/components/HospitalLogo";
+import { HospitalMap, type MapPin } from "@/components/HospitalMap";
 import { sizeCategory } from "@/lib/hospital-util";
 import { tSido, tSiggu, tKind } from "@/lib/i18n-dict";
 import type { Hospital } from "@/lib/types";
@@ -64,24 +65,19 @@ async function performSearch(
   return { rows: (data ?? []) as Hospital[], total: count ?? 0 };
 }
 
-function projectPins(rows: Hospital[]): Array<{ id: number; top: string; left: string; idx: number }> {
-  const withCoord = rows
+function makeMapPins(rows: Hospital[], localePrefix: string): MapPin[] {
+  return rows
     .map((r, idx) => ({ r, idx }))
-    .filter(({ r }) => r.x_pos != null && r.y_pos != null);
-  if (withCoord.length === 0) return [];
-  const xs = withCoord.map(({ r }) => r.x_pos as number);
-  const ys = withCoord.map(({ r }) => r.y_pos as number);
-  const xMin = Math.min(...xs), xMax = Math.max(...xs);
-  const yMin = Math.min(...ys), yMax = Math.max(...ys);
-  const xPad = (xMax - xMin) * 0.1 || 0.01;
-  const yPad = (yMax - yMin) * 0.1 || 0.01;
-  const xRange = (xMax - xMin) + 2 * xPad;
-  const yRange = (yMax - yMin) + 2 * yPad;
-  return withCoord.slice(0, 30).map(({ r, idx }) => ({
-    id: r.id, idx,
-    left: `${(((r.x_pos as number) - xMin + xPad) / xRange) * 100}%`,
-    top: `${(1 - (((r.y_pos as number) - yMin + yPad) / yRange)) * 100}%`,
-  }));
+    .filter(({ r }) => r.x_pos != null && r.y_pos != null)
+    .slice(0, 30)
+    .map(({ r, idx }) => ({
+      id: r.id,
+      lat: r.y_pos as number,
+      lng: r.x_pos as number,
+      label: String(idx + 1),
+      popup: r.yadm_nm,
+      href: `${localePrefix}/hospital/${encodeURIComponent(r.slug)}`,
+    }));
 }
 
 export default async function SearchPage({
@@ -118,7 +114,8 @@ export default async function SearchPage({
     }
   }
 
-  const pins = projectPins(rows);
+  const localePrefix = locale === "ko" ? "" : `/${locale}`;
+  const pins = makeMapPins(rows, localePrefix);
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const showMap = pins.length >= 2;
 
@@ -259,20 +256,11 @@ export default async function SearchPage({
       </div>
 
       {showMap && (
-        <div className="cm-map">
-          <div className="map-bg" />
-          <span className="map-search-here" style={{ pointerEvents: "none" }}>
+        <div style={{ position: "relative", minHeight: 400 }}>
+          <HospitalMap pins={pins} height="calc(100vh - 64px)" />
+          <span className="map-search-here" style={{ position: "absolute", top: 18, left: "50%", transform: "translateX(-50%)", zIndex: 1000, pointerEvents: "none" }}>
             <Icon name="search" size={13} color="#fff" /> {t("mapNote", { n: pins.length })}
           </span>
-          {pins.map((p) => (
-            <div key={p.id} className="pin" style={{ top: p.top, left: p.left }}>
-              <div className="marker">{p.idx + 1}</div>
-            </div>
-          ))}
-          <div className="map-controls">
-            <button aria-label="+">+</button>
-            <button aria-label="-">−</button>
-          </div>
         </div>
       )}
     </div>

@@ -1,21 +1,16 @@
 /**
- * 사이트맵 — Next.js 16 내장 generateSitemaps 사용
- *
+ * 다국어 사이트맵 — 모든 URL에 hreflang alternates 포함.
  * 구조:
- *  - /sitemap/0.xml  : 정적 페이지 + 시도 + 시군구
- *  - /sitemap/1.xml ~ : 병원 상세 페이지 50,000 URL씩 분할 (8만 건 → 2개 분할)
- *
- * Google 한도: 1 sitemap = 50,000 URL.
- * next-sitemap 패키지 대신 내장 API를 쓰는 이유:
- *   - 동적 데이터(병원 8만)를 빌드 시점이 아닌 요청 시점에 생성 (ISR 친화적)
- *   - App Router와 통합 — 별도 빌드 스크립트 불필요
+ *  - /sitemap/0.xml  : 정적 + 시도 + 시군구 (× 4 locale)
+ *  - /sitemap/N.xml  : 병원 상세 (× 4 locale)
  */
 import type { MetadataRoute } from "next";
 import { supabase } from "@/lib/supabase";
 import { getSidoList, getSigguList } from "@/lib/db";
+import { routing } from "@/i18n/routing";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://example.com";
-const URLS_PER_SITEMAP = 45_000; // 여유 5천
+const URLS_PER_SITEMAP = 10_000; // 4 locales × 10k = 40k URLs per sitemap (Google 50k 한도)
 
 async function countHospitals(): Promise<number> {
   const { count, error } = await supabase
@@ -26,17 +21,43 @@ async function countHospitals(): Promise<number> {
 }
 
 export async function generateSitemaps() {
-  // 0번 = 인덱스/지역 페이지, 1번부터 = 병원 상세 분할
   let hospitalCount = 0;
   try {
     hospitalCount = await countHospitals();
   } catch {
     hospitalCount = 0;
   }
-  const hospitalChunks = Math.max(1, Math.ceil(hospitalCount / URLS_PER_SITEMAP));
+  const chunks = Math.max(1, Math.ceil(hospitalCount / URLS_PER_SITEMAP));
   const ids = [0];
-  for (let i = 1; i <= hospitalChunks; i++) ids.push(i);
+  for (let i = 1; i <= chunks; i++) ids.push(i);
   return ids.map((id) => ({ id }));
+}
+
+/** locale-prefixed URL 생성 (ko는 prefix 없음) */
+function localizedUrl(locale: string, path: string): string {
+  if (locale === routing.defaultLocale) return `${SITE_URL}${path}`;
+  return `${SITE_URL}/${locale}${path}`;
+}
+
+/** 다국어 alternates 생성 (Google hreflang) */
+function alternatesForPath(path: string): MetadataRoute.Sitemap[number]["alternates"] {
+  const languages: Record<string, string> = {};
+  for (const l of routing.locales) {
+    languages[l] = localizedUrl(l, path);
+  }
+  return { languages };
+}
+
+function makeEntry(
+  path: string,
+  opts: Partial<Pick<MetadataRoute.Sitemap[number], "changeFrequency" | "priority" | "lastModified">> = {},
+): MetadataRoute.Sitemap[number][] {
+  // 각 locale마다 entry 생성 + alternates 공유
+  return routing.locales.map((locale) => ({
+    url: localizedUrl(locale, path),
+    alternates: alternatesForPath(path),
+    ...opts,
+  }));
 }
 
 export default async function sitemap(props: { id: Promise<string> }): Promise<MetadataRoute.Sitemap> {
@@ -44,32 +65,26 @@ export default async function sitemap(props: { id: Promise<string> }): Promise<M
   const id = Number(idStr);
 
   if (id === 0) {
-    // 정적 + 지역 페이지
     const urls: MetadataRoute.Sitemap = [
-      { url: `${SITE_URL}/`, changeFrequency: "daily", priority: 1.0 },
-      { url: `${SITE_URL}/search`, changeFrequency: "weekly", priority: 0.5 },
+      ...makeEntry("/", { changeFrequency: "daily", priority: 1.0 }),
+      ...makeEntry("/search", { changeFrequency: "weekly", priority: 0.5 }),
     ];
     try {
       const sidos = await getSidoList();
       for (const s of sidos) {
-        const sidoUrl = `${SITE_URL}/${encodeURIComponent(s.name)}`;
-        urls.push({ url: sidoUrl, changeFrequency: "weekly", priority: 0.8 });
+        const sidoPath = `/${encodeURIComponent(s.name)}`;
+        urls.push(...makeEntry(sidoPath, { changeFrequency: "weekly", priority: 0.8 }));
         const sigus = await getSigguList(s.name);
         for (const sg of sigus) {
-          urls.push({
-            url: `${sidoUrl}/${encodeURIComponent(sg.name)}`,
-            changeFrequency: "weekly",
-            priority: 0.7,
-          });
+          urls.push(...makeEntry(`${sidoPath}/${encodeURIComponent(sg.name)}`,
+            { changeFrequency: "weekly", priority: 0.7 }));
         }
       }
-    } catch {
-      // DB 미연결 — 정적만 반환
-    }
+    } catch {}
     return urls;
   }
 
-  // 병원 상세 분할
+  // 병원 상세
   const offset = (id - 1) * URLS_PER_SITEMAP;
   const pageSize = 1000;
   const urls: MetadataRoute.Sitemap = [];
@@ -85,17 +100,12 @@ export default async function sitemap(props: { id: Promise<string> }): Promise<M
       if (error) break;
       if (!data || data.length === 0) break;
       for (const r of data as { slug: string; updated_at: string }[]) {
-        urls.push({
-          url: `${SITE_URL}/hospital/${encodeURIComponent(r.slug)}`,
-          lastModified: r.updated_at ? new Date(r.updated_at) : undefined,
-          changeFrequency: "monthly",
-          priority: 0.6,
-        });
+        const path = `/hospital/${encodeURIComponent(r.slug)}`;
+        const lastModified = r.updated_at ? new Date(r.updated_at) : undefined;
+        urls.push(...makeEntry(path, { changeFrequency: "monthly", priority: 0.6, lastModified }));
       }
       if (data.length < pageSize) break;
     }
-  } catch {
-    // DB 미연결 — 빈 사이트맵
-  }
+  } catch {}
   return urls;
 }

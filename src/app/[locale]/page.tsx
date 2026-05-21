@@ -81,8 +81,35 @@ export default async function Home({
   // 검색어 표시는 locale 따라
   const searchKey = (ko: string) => (locale === "en" ? tSpecialty(ko, "en") : ko);
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.caremap.store";
+  const sitePrefix = locale === "ko" ? "" : `/${locale}`;
+
+  const websiteLD = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "CAREMAP",
+    url: `${siteUrl}${sitePrefix}/`,
+    inLanguage: locale,
+    potentialAction: {
+      "@type": "SearchAction",
+      target: `${siteUrl}${sitePrefix}/search?q={search_term_string}`,
+      "query-input": "required name=search_term_string",
+    },
+  };
+
+  const organizationLD = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "Team Performance Inc.",
+    alternateName: "주식회사 팀퍼포먼스",
+    url: siteUrl,
+    logo: `${siteUrl}/opengraph-image`,
+  };
+
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteLD) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationLD) }} />
       <section className="cm-hero">
         <span className="eyebrow">{t("eyebrow")}</span>
         <h1>

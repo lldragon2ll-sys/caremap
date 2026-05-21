@@ -45,11 +45,20 @@ export async function generateMetadata({
     description: t("description"),
     alternates: {
       canonical: locale === "ko" ? "/" : `/${locale}`,
-      languages: { ko: "/", en: "/en" },
+      languages: {
+        ko: "/",
+        en: "/en",
+        ja: "/ja",
+        zh: "/zh",
+        "x-default": "/",
+      },
     },
     openGraph: {
       type: "website",
-      locale: locale === "en" ? "en_US" : "ko_KR",
+      locale: locale === "en" ? "en_US"
+        : locale === "ja" ? "ja_JP"
+        : locale === "zh" ? "zh_CN"
+        : "ko_KR",
       siteName: t("name"),
       url: SITE_URL,
       title: `${t("name")} — ${t("tagline")}`,
