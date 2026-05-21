@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { HospitalCard } from "@/components/HospitalCard";
 import { SpecialtyTile } from "@/components/SpecialtyTile";
 import { Icon } from "@/components/Icon";
+import { SearchAutocomplete } from "@/components/SearchAutocomplete";
 import { tSido, tSiggu, tSpecialty, tKind, pick4 } from "@/lib/i18n-dict";
 import type { Hospital } from "@/lib/types";
 
@@ -124,7 +125,12 @@ export default async function Home({
         <form action={locale === "ko" ? "/search" : `/${locale}/search`} method="get" className="cm-searchbar" role="search">
           <div className="field">
             <label htmlFor="q">{t("searchSpecialty")}</label>
-            <input id="q" name="q" type="search" placeholder={t("searchSpecialtyPlaceholder")} autoComplete="off" />
+            <SearchAutocomplete
+              id="q"
+              name="q"
+              locale={locale}
+              placeholder={t("searchSpecialtyPlaceholder")}
+            />
           </div>
           <div className="field">
             <label htmlFor="area">{t("searchArea")}</label>

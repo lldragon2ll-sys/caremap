@@ -3,11 +3,14 @@ import { Link } from "@/i18n/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { getHospitalsByRegion } from "@/lib/db";
 import { HospitalCard } from "@/components/HospitalCard";
+import { Pagination } from "@/components/Pagination";
 import { tSido, tSiggu, tSpecialty, pick4 } from "@/lib/i18n-dict";
 
 export const dynamic = "force-dynamic";
 
 type Params = Promise<{ locale: string; sido: string; sigungu: string }>;
+type SearchParams = Promise<{ page?: string }>;
+const PAGE_SIZE = 24;
 
 const SPECIALTIES = [
   "성형외과", "피부과", "치과", "안과", "한의원", "정신과",
@@ -41,8 +44,10 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   };
 }
 
-export default async function SigunguPage({ params }: { params: Params }) {
+export default async function SigunguPage({ params, searchParams }: { params: Params; searchParams: SearchParams }) {
   const { locale, sido, sigungu } = await params;
+  const sp = await searchParams;
+  const page = Math.max(1, parseInt(sp.page ?? "1", 10) || 1);
   setRequestLocale(locale);
   const t = await getTranslations("sigungu");
   const tNav = await getTranslations("nav");
@@ -54,10 +59,11 @@ export default async function SigunguPage({ params }: { params: Params }) {
   let rows: Awaited<ReturnType<typeof getHospitalsByRegion>>["rows"] = [];
   let total = 0;
   try {
-    const res = await getHospitalsByRegion(sidoNm, sigguNm, 12, 0);
+    const res = await getHospitalsByRegion(sidoNm, sigguNm, PAGE_SIZE, (page - 1) * PAGE_SIZE);
     rows = res.rows;
     total = res.total;
   } catch {}
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   return (
     <>
@@ -111,9 +117,19 @@ export default async function SigunguPage({ params }: { params: Params }) {
             {pick4(locale, "데이터가 없습니다.", "No data available.", "データがありません。", "无数据。")}
           </p>
         ) : (
-          <div className="cm-card-grid">
-            {rows.map((h) => <HospitalCard key={h.id} h={h} />)}
-          </div>
+          <>
+            <div className="cm-card-grid">
+              {rows.map((h) => <HospitalCard key={h.id} h={h} />)}
+            </div>
+            {totalPages > 1 && (
+              <Pagination
+                locale={locale}
+                page={page}
+                totalPages={totalPages}
+                basePath={`/${encodeURIComponent(sidoNm)}/${encodeURIComponent(sigguNm)}`}
+              />
+            )}
+          </>
         )}
       </section>
     </>

@@ -7,6 +7,7 @@ import { Icon } from "@/components/Icon";
 import { HospitalMap, type MapPin } from "@/components/HospitalMap";
 import { SearchTracker } from "@/components/SearchTracker";
 import { SearchResultsClient } from "@/components/SearchResultsClient";
+import { SearchAutocomplete } from "@/components/SearchAutocomplete";
 import { tKind, searchKeyToKorean, pick4 } from "@/lib/i18n-dict";
 import type { Hospital } from "@/lib/types";
 
@@ -178,12 +179,17 @@ export default async function SearchPage({
             {error && <span style={{ color: "var(--cm-red)" }}> · {error}</span>}
           </div>
 
-          <form action={locale === "ko" ? "/search" : `/${locale}/search`} method="get" style={{ display: "flex", gap: 6, marginTop: 12, flexWrap: "wrap" }}>
-            <input
-              name="q" defaultValue={q} placeholder={t("qPlaceholder")}
-              className="cm-filter-chip"
-              style={{ flex: 1, minWidth: 120, padding: "6px 12px" }}
-            />
+          <form action={locale === "ko" ? "/search" : `/${locale}/search`} method="get" style={{ display: "flex", gap: 6, marginTop: 12, flexWrap: "wrap", alignItems: "flex-start" }}>
+            <div style={{ flex: 1, minWidth: 120 }}>
+              <SearchAutocomplete
+                name="q"
+                locale={locale}
+                defaultValue={q}
+                placeholder={t("qPlaceholder")}
+                className="cm-filter-chip"
+                inputStyle={{ width: "100%", padding: "6px 12px" }}
+              />
+            </div>
             <input
               name="area" defaultValue={area} placeholder={t("areaPlaceholder")}
               className="cm-filter-chip"

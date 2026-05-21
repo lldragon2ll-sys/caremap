@@ -28,12 +28,14 @@ export function TopNav() {
     return () => document.removeEventListener("mousedown", onClick);
   }, [langOpen]);
 
+  const guideLabel = locale === "en" ? "Guides" : locale === "ja" ? "ガイド" : locale === "zh" ? "指南" : "가이드";
   const NAV_ITEMS = [
     { href: "/", label: t("home") },
     { href: "/search", label: t("search") },
     { href: `/search?q=${encodeURIComponent(tSpecialty("성형외과", locale))}`, label: t("plasticSurgery") },
     { href: `/search?q=${encodeURIComponent(tSpecialty("피부과", locale))}`, label: t("dermatology") },
     { href: `/search?q=${encodeURIComponent(tSpecialty("치과", locale))}`, label: t("dental") },
+    { href: "/guide", label: guideLabel },
   ];
 
   // next-intl router.replace로 명시적 locale 전환 (cookie/Accept-Language 우회)

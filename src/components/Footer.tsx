@@ -66,6 +66,8 @@ export async function Footer() {
             <li>{tSite("operator")}</li>
             <li>{tSite("operatorEn")}</li>
             <li><Link href="/about">About</Link></li>
+            <li><Link href="/register">{locale === "en" ? "Register Clinic" : locale === "ja" ? "クリニック登録" : locale === "zh" ? "诊所登记" : "병원 등록"}</Link></li>
+            <li><Link href="/advertise">{locale === "en" ? "Advertise" : locale === "ja" ? "広告" : locale === "zh" ? "广告" : "광고/제휴"}</Link></li>
             <li><Link href="/terms">{locale === "en" ? "Terms" : locale === "ja" ? "利用規約" : locale === "zh" ? "条款" : "이용약관"}</Link></li>
             <li><Link href="/privacy">{locale === "en" ? "Privacy" : locale === "ja" ? "プライバシー" : locale === "zh" ? "隐私" : "개인정보"}</Link></li>
           </ul>

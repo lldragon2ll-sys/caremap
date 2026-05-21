@@ -565,3 +565,8 @@ button { font: inherit; cursor: pointer; }
   .cm-footer .cols { grid-template-columns: 1fr 1fr; gap: 24px; }
   .cm-doctors { grid-template-columns: 1fr; }
 }
+
+@keyframes cm-skeleton {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}

@@ -3,11 +3,14 @@ import { Link } from "@/i18n/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { getHospitalsBySpecialty } from "@/lib/db";
 import { HospitalCard } from "@/components/HospitalCard";
+import { Pagination } from "@/components/Pagination";
 import { tSido, tSiggu, tSpecialty, pick4 } from "@/lib/i18n-dict";
 
 export const dynamic = "force-dynamic";
 
 type Params = Promise<{ locale: string; sido: string; sigungu: string; specialty: string }>;
+type SearchParams = Promise<{ page?: string }>;
+const PAGE_SIZE = 24;
 
 const NEARBY_SPECIALTIES: Record<string, string[]> = {
   내과: ["가정의학과", "소아청소년과", "건강검진센터", "마취통증의학과"],
@@ -141,8 +144,10 @@ function buildBreadcrumbLD(
   };
 }
 
-export default async function SpecialtyPage({ params }: { params: Params }) {
+export default async function SpecialtyPage({ params, searchParams }: { params: Params; searchParams: SearchParams }) {
   const { locale, sido, sigungu, specialty } = await params;
+  const sp_ = await searchParams;
+  const page = Math.max(1, parseInt(sp_.page ?? "1", 10) || 1);
   setRequestLocale(locale);
   const t = await getTranslations("category");
   const tNav = await getTranslations("nav");
@@ -157,10 +162,11 @@ export default async function SpecialtyPage({ params }: { params: Params }) {
   let rows: Awaited<ReturnType<typeof getHospitalsBySpecialty>>["rows"] = [];
   let total = 0;
   try {
-    const res = await getHospitalsBySpecialty(sidoNm, sigguNm, sp, 12, 0);
+    const res = await getHospitalsBySpecialty(sidoNm, sigguNm, sp, PAGE_SIZE, (page - 1) * PAGE_SIZE);
     rows = res.rows;
     total = res.total;
   } catch {}
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   const faq = locale === "en" ? buildFaqEn(sidoD, sigguD, spD)
     : locale === "ja" ? buildFaqJa(sidoD, sigguD, spD)
@@ -234,10 +240,51 @@ export default async function SpecialtyPage({ params }: { params: Params }) {
         {rows.length === 0 ? (
           <p style={{ color: "var(--cm-text-2)", fontSize: 14 }}>{t("noResults")}</p>
         ) : (
-          <div className="cm-card-grid">
-            {rows.map((h) => <HospitalCard key={h.id} h={h} />)}
-          </div>
+          <>
+            <div className="cm-card-grid">
+              {rows.map((h) => <HospitalCard key={h.id} h={h} />)}
+            </div>
+            {totalPages > 1 && (
+              <Pagination
+                locale={locale}
+                page={page}
+                totalPages={totalPages}
+                basePath={`/${encodeURIComponent(sidoNm)}/${encodeURIComponent(sigguNm)}/${encodeURIComponent(sp)}`}
+              />
+            )}
+          </>
         )}
+      </section>
+
+      <section className="cm-section">
+        <div className="section-head">
+          <div>
+            <h2>{pick4(locale,
+              `${spD} 진료 안내`,
+              `${spD} Treatment Information`,
+              `${spD}診療のご案内`,
+              `${spD}诊疗介绍`,
+            )}</h2>
+          </div>
+        </div>
+        <div style={{ maxWidth: 760, fontSize: 14.5, lineHeight: 1.75, color: "var(--cm-text)" }}>
+          <p>
+            {pick4(locale,
+              `${sidoNm} ${sigguNm}에 위치한 ${sp} 진료 가능 의료기관 ${total.toLocaleString()}곳의 정보를 제공합니다. 본 페이지는 건강보험심사평가원(HIRA) 공공데이터 기반으로 매주 갱신되며, 모든 의료기관은 의료법에 따라 정식 등록된 기관입니다.`,
+              `Information for ${total.toLocaleString()} ${spD} clinics in ${sidoD} ${sigguD}. This page is refreshed weekly from Korea's HIRA public data, and all listed institutions are officially registered under the Medical Service Act.`,
+              `${sidoD} ${sigguD}に位置する${spD}診療可能な医療機関${total.toLocaleString()}件の情報を提供します。HIRA公共データを基に毎週更新され、すべて医療法に基づき登録された機関です。`,
+              `提供位于${sidoD} ${sigguD}的${total.toLocaleString()}家${spD}诊所信息。本页基于HIRA公共数据每周更新,所有机构均依据医疗法正式注册。`,
+            )}
+          </p>
+          <p style={{ marginTop: 12 }}>
+            {pick4(locale,
+              `의사 수, 종별(의원·병원·종합), 전문의 비율, 위치 접근성을 함께 고려하여 선택하시기 바랍니다. 진료 예약 가능 여부, 진료시간, 비급여 비용은 각 의료기관에 직접 전화 문의하시는 것이 가장 정확합니다.`,
+              `Consider the number of doctors, hospital tier (clinic / hospital / general), specialist ratio, and location. For availability, hours and out-of-pocket fees, calling the clinic directly is the most reliable approach.`,
+              `医師数・施設区分(クリニック・病院・総合)・専門医比率・立地を総合的にご検討ください。予約可否・診療時間・自由診療費用は各医療機関に直接お問い合わせいただくのが最も正確です。`,
+              `请综合考虑医师数量、机构类型(诊所·医院·综合)、专科医师比例和位置便利性。预约情况、营业时间、自费费用建议直接致电各机构确认。`,
+            )}
+          </p>
+        </div>
       </section>
 
       <section className="cm-section surface">
