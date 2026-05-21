@@ -1,8 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
-import { Link, usePathname } from "@/i18n/navigation";
-import NextLink from "next/link";
+import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { Icon } from "./Icon";
 import { LOCALE_LABELS, tSpecialty } from "@/lib/i18n-dict";
 import { routing } from "@/i18n/routing";
@@ -12,12 +11,12 @@ const SITE_NAME = process.env.NEXT_PUBLIC_SITE_NAME ?? "CAREMAP";
 export function TopNav() {
   const t = useTranslations("nav");
   const locale = useLocale();
+  const router = useRouter();
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
   const langWrapRef = useRef<HTMLDivElement>(null);
 
-  // 바깥 클릭 시 드롭다운 닫기 (mousedown 사용 — onClick 전에 발생하지 않도록)
   useEffect(() => {
     if (!langOpen) return;
     const onClick = (e: MouseEvent) => {
@@ -37,11 +36,11 @@ export function TopNav() {
     { href: `/search?q=${encodeURIComponent(tSpecialty("치과", locale))}`, label: t("dental") },
   ];
 
-  // 명시적 locale prefix — 항상 절대 경로 사용 (Vercel middleware 캐시 우회)
-  const buildLocaleHref = (target: string) => {
-    const prefix = target === routing.defaultLocale ? "" : `/${target}`;
-    // pathname 자체에 prefix 가 이미 없도록 next-intl이 처리
-    return `${prefix}${pathname || "/"}`;
+  // next-intl router.replace로 명시적 locale 전환 (cookie/Accept-Language 우회)
+  const switchLocale = (target: string) => {
+    setLangOpen(false);
+    setMobileOpen(false);
+    router.replace(pathname, { locale: target as "ko" | "en" | "ja" | "zh" });
   };
 
   return (
@@ -83,23 +82,25 @@ export function TopNav() {
             }}
           >
             {routing.locales.map((l) => (
-              <a
+              <button
+                type="button"
                 key={l}
-                href={buildLocaleHref(l)}
-                onClick={() => setLangOpen(false)}
+                onClick={() => switchLocale(l)}
                 style={{
                   padding: "8px 12px",
                   borderRadius: 6,
                   fontSize: 13.5,
                   fontWeight: l === locale ? 700 : 500,
                   color: l === locale ? "var(--cm-primary)" : "var(--cm-ink)",
-                  textDecoration: "none",
+                  textAlign: "left",
+                  border: "none",
                   background: l === locale ? "var(--cm-primary-50)" : "transparent",
+                  cursor: "pointer",
                 }}
                 role="menuitem"
               >
                 {LOCALE_LABELS[l]}
-              </a>
+              </button>
             ))}
           </div>
         )}
@@ -141,20 +142,24 @@ export function TopNav() {
                 Language
               </div>
               {routing.locales.map((l) => (
-                <a
+                <button
+                  type="button"
                   key={l}
-                  href={buildLocaleHref(l)}
-                  onClick={() => setMobileOpen(false)}
+                  onClick={() => switchLocale(l)}
                   style={{
                     padding: "10px 8px",
                     color: l === locale ? "var(--cm-primary)" : "var(--cm-ink)",
                     fontWeight: l === locale ? 700 : 500,
                     display: "block",
-                    textDecoration: "none",
+                    width: "100%",
+                    border: "none",
+                    background: "transparent",
+                    textAlign: "left",
+                    cursor: "pointer",
                   }}
                 >
                   {LOCALE_LABELS[l]}
-                </a>
+                </button>
               ))}
             </div>
           </nav>
