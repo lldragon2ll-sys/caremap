@@ -1,9 +1,11 @@
-import Link from "next/link";
+import { useTranslations, useLocale } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { Icon } from "./Icon";
 import { Badge } from "./Badge";
 import { HospitalLogo } from "./HospitalLogo";
 import type { Hospital } from "@/lib/types";
 import { sizeCategory } from "@/lib/hospital-util";
+import { tKind, tSido, tSiggu } from "@/lib/i18n-dict";
 
 export type Layout = "card" | "compact";
 
@@ -18,18 +20,25 @@ function specialistCount(h: Hospital): number {
 }
 
 export function HospitalCard({ h, layout = "card" }: { h: Hospital; layout?: Layout }) {
+  const t = useTranslations("card");
+  const tHospital = useTranslations("hospital");
+  const locale = useLocale();
   const href = `/hospital/${encodeURIComponent(h.slug)}`;
   const tel = telHref(h.tel_no);
-  const region = [h.sggu_cd_nm, h.emdong_nm].filter(Boolean).join(" ");
+  const region = [tSiggu(h.sggu_cd_nm ?? "", locale), h.emdong_nm].filter(Boolean).join(" ");
   const spec = specialistCount(h);
   const size = sizeCategory(h);
+  // size.label은 한글이라 영문일 때 변환
+  const sizeLabel = locale === "en"
+    ? (size.tier === "대형" ? t("tierLarge") : size.tier === "중형" ? t("tierMid") : t("tierSmall"))
+    : size.label;
 
   return (
     <article className={`cm-hcard${layout === "compact" ? " compact" : ""}`}>
       <Link href={href} className="img" style={{ textDecoration: "none" }}>
         <div className="badge-row" style={{ alignSelf: "flex-start" }}>
-          <Badge kind="verified">HIRA 인증</Badge>
-          {h.cl_cd_nm && <Badge kind="kind">{h.cl_cd_nm}</Badge>}
+          <Badge kind="verified">{tHospital("verified").split(" ")[0]}</Badge>
+          {h.cl_cd_nm && <Badge kind="kind">{tKind(h.cl_cd_nm, locale)}</Badge>}
         </div>
         <HospitalLogo h={h} size={56} className="card-logo" />
       </Link>
@@ -38,7 +47,7 @@ export function HospitalCard({ h, layout = "card" }: { h: Hospital; layout?: Lay
           {h.yadm_nm}
         </Link>
         <div className="specialty">
-          {h.cl_cd_nm ?? "병원"} · {region || h.sido_cd_nm || "—"}
+          {tKind(h.cl_cd_nm ?? "병원", locale)} · {region || tSido(h.sido_cd_nm ?? "", locale) || "—"}
         </div>
         <div className="meta">
           <div className="line">
@@ -49,9 +58,13 @@ export function HospitalCard({ h, layout = "card" }: { h: Hospital; layout?: Lay
               }}
             >
               <Icon name="shield" size={11} color={size.color} />
-              {size.label}
+              {sizeLabel}
             </span>
-            {spec > 0 && <span style={{ color: "var(--cm-text-3)" }}> · 전문의 {spec}명</span>}
+            {spec > 0 && (
+              <span style={{ color: "var(--cm-text-3)" }}>
+                {" · "}{t("specialists", { n: spec })}
+              </span>
+            )}
           </div>
           {h.addr && (
             <div className="line">
@@ -64,15 +77,15 @@ export function HospitalCard({ h, layout = "card" }: { h: Hospital; layout?: Lay
         </div>
       </div>
       <div className="actions">
-        <Link href={href} className="btn">자세히 보기</Link>
+        <Link href={href} className="btn">{t("details")}</Link>
         {tel ? (
           <a href={tel} className="btn primary">
             <Icon name="phone" size={13} color="#fff" />
-            전화하기
+            {t("call")}
           </a>
         ) : (
           <span className="btn" style={{ opacity: 0.5, cursor: "not-allowed" }}>
-            전화번호 없음
+            {t("noPhone")}
           </span>
         )}
       </div>

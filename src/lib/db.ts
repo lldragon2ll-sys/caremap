@@ -43,55 +43,79 @@ export type RegionStats = {
   count: number;
 };
 
-/** 시도 목록 + 카운트 */
+/** 시도 목록 + 카운트 (사전 집계된 v_sido_counts view 사용) */
 export async function getSidoList(): Promise<{ name: string; count: number }[]> {
-  // 간단히 distinct 후 count는 별도 — view 사용
   const { data, error } = await supabase
-    .from("v_hospital_counts_by_region")
+    .from("v_sido_counts")
     .select("sido, cnt");
   if (error) throw error;
-  const agg = new Map<string, number>();
-  for (const r of (data ?? []) as { sido: string; cnt: number }[]) {
-    if (!r.sido) continue;
-    agg.set(r.sido, (agg.get(r.sido) ?? 0) + r.cnt);
-  }
-  return [...agg.entries()]
-    .map(([name, count]) => ({ name, count }))
+  return ((data ?? []) as { sido: string; cnt: number }[])
+    .filter((r) => r.sido)
+    .map((r) => ({ name: r.sido, count: Number(r.cnt) }))
     .sort((a, b) => b.count - a.count);
 }
 
 export async function getSigguList(sido: string): Promise<{ name: string; count: number }[]> {
   const { data, error } = await supabase
-    .from("v_hospital_counts_by_region")
+    .from("v_sggu_counts")
     .select("sggu, cnt")
     .eq("sido", sido);
   if (error) throw error;
-  const agg = new Map<string, number>();
-  for (const r of (data ?? []) as { sggu: string; cnt: number }[]) {
-    if (!r.sggu) continue;
-    agg.set(r.sggu, (agg.get(r.sggu) ?? 0) + r.cnt);
-  }
-  return [...agg.entries()]
-    .map(([name, count]) => ({ name, count }))
+  return ((data ?? []) as { sggu: string; cnt: number }[])
+    .filter((r) => r.sggu)
+    .map((r) => ({ name: r.sggu, count: Number(r.cnt) }))
     .sort((a, b) => b.count - a.count);
 }
 
+/**
+ * 지역별 병원 — 비급여·미용 위주 사이트 컨셉에 맞춰 의원급(의원/치과의원/한의원) 우선 정렬.
+ * 1차로 의원급 결과 채우고, 부족하면 그 외 종별로 보충.
+ */
 export async function getHospitalsByRegion(
   sido: string,
   sggu?: string,
   limit = 100,
   offset = 0,
 ): Promise<{ rows: Hospital[]; total: number }> {
-  let q = supabase
-    .from("hospitals")
-    .select("*", { count: "exact" })
-    .eq("sido_cd_nm", sido)
+  const buildBase = () => {
+    let q = supabase
+      .from("hospitals")
+      .select("*", { count: "exact" })
+      .eq("sido_cd_nm", sido);
+    if (sggu) q = q.eq("sggu_cd_nm", sggu);
+    return q;
+  };
+
+  // 의원급 (clinic-tier) 우선
+  const clinic = await buildBase()
+    .in("cl_cd_nm", ["의원", "치과의원", "한의원"])
     .order("dr_tot_cnt", { ascending: false })
     .range(offset, offset + limit - 1);
-  if (sggu) q = q.eq("sggu_cd_nm", sggu);
-  const { data, error, count } = await q;
-  if (error) throw error;
-  return { rows: (data ?? []) as Hospital[], total: count ?? 0 };
+  if (clinic.error) throw clinic.error;
+
+  const clinicRows = (clinic.data ?? []) as Hospital[];
+  const clinicTotal = clinic.count ?? 0;
+
+  // 의원급으로 채워졌으면 거기서 끝
+  if (clinicRows.length >= limit) {
+    return { rows: clinicRows, total: clinicTotal };
+  }
+
+  // 부족하면 그 외 종별(병원/종합/상급 등) 보충
+  const remaining = limit - clinicRows.length;
+  const others = await buildBase()
+    .not("cl_cd_nm", "in", "(의원,치과의원,한의원)")
+    .order("dr_tot_cnt", { ascending: false })
+    .range(0, remaining - 1);
+  if (others.error) throw others.error;
+
+  const otherRows = (others.data ?? []) as Hospital[];
+  const otherTotal = others.count ?? 0;
+
+  return {
+    rows: [...clinicRows, ...otherRows],
+    total: clinicTotal + otherTotal,
+  };
 }
 
 /**
