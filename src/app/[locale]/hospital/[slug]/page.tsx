@@ -9,6 +9,8 @@ import { HospitalLogo } from "@/components/HospitalLogo";
 import { HospitalMap } from "@/components/HospitalMap";
 import { HospitalCard } from "@/components/HospitalCard";
 import { ViewTracker } from "@/components/ViewTracker";
+import { SaveButton } from "@/components/SaveButton";
+import { ShareButton } from "@/components/ShareButton";
 import { mapDeepLinks, sizeCategory } from "@/lib/hospital-util";
 import { tKind, tSido, tSiggu } from "@/lib/i18n-dict";
 import { generateDescription } from "@/lib/hospital-description";
@@ -495,8 +497,14 @@ export default async function HospitalPage({ params }: { params: Params }) {
                 <Icon name="pin" size={14} /><span>{t("actionDirections")}</span>
               </a>
             )}
-            <button className="btn" type="button"><Icon name="heart" size={14} /><span>{t("actionSave")}</span></button>
-            <button className="btn" type="button"><Icon name="share" size={14} /><span>{t("actionShare")}</span></button>
+            <SaveButton slug={h.slug} className="btn" label={t("actionSave")} labelSaved={t("actionSave")} />
+            <ShareButton
+              url={`${siteUrl}${locale === "ko" ? "" : `/${locale}`}/hospital/${encodeURIComponent(h.slug)}`}
+              title={h.yadm_nm}
+              text={kindLabel}
+              className="btn"
+              label={t("actionShare")}
+            />
           </div>
         </aside>
       </div>
