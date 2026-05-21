@@ -12,6 +12,7 @@ import { ViewTracker } from "@/components/ViewTracker";
 import { mapDeepLinks, sizeCategory } from "@/lib/hospital-util";
 import { tKind, tSido, tSiggu } from "@/lib/i18n-dict";
 import { generateDescription } from "@/lib/hospital-description";
+import { romanizeYadm, romanizeAddr } from "@/lib/romanize";
 import type { Hospital } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -254,7 +255,14 @@ export default async function HospitalPage({ params }: { params: Params }) {
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 14, margin: "8px 0" }}>
               <HospitalLogo h={h} size={56} />
-              <h1 style={{ margin: 0 }}><span className="kr">{h.yadm_nm}</span></h1>
+              <div>
+                <h1 style={{ margin: 0 }}><span className="kr">{h.yadm_nm}</span></h1>
+                {locale !== "ko" && (
+                  <div style={{ fontSize: 14, color: "var(--cm-text-2)", fontWeight: 500, marginTop: 4 }}>
+                    {romanizeYadm(h.yadm_nm)}
+                  </div>
+                )}
+              </div>
             </div>
             <div className="sub">{region} · {kindLabel}</div>
 
@@ -348,9 +356,14 @@ export default async function HospitalPage({ params }: { params: Params }) {
 
           <section id="location" className="cm-section-card">
             <h3>{t("locationTitle")}</h3>
-            <p style={{ fontSize: 14, color: "var(--cm-text)", margin: "0 0 12px" }}>
+            <p style={{ fontSize: 14, color: "var(--cm-text)", margin: "0 0 4px" }}>
               {h.addr ?? t("noAddress")}
             </p>
+            {locale !== "ko" && h.addr && (
+              <p style={{ fontSize: 13, color: "var(--cm-text-2)", margin: "0 0 12px" }}>
+                {romanizeAddr(h.addr)}
+              </p>
+            )}
             {mapEmbed && (
               <iframe
                 src={mapEmbed}
@@ -387,7 +400,17 @@ export default async function HospitalPage({ params }: { params: Params }) {
           <div className="cm-quickfacts">
             <h5>{t("quickFacts")}</h5>
             <div className="qrow"><span className="k">{t("kind")}</span><span className="v">{kindLabel || "—"}</span></div>
-            <div className="qrow"><span className="k">{t("address")}</span><span className="v">{h.addr ?? "—"}</span></div>
+            <div className="qrow">
+              <span className="k">{t("address")}</span>
+              <span className="v">
+                {h.addr ?? "—"}
+                {locale !== "ko" && h.addr && (
+                  <div style={{ fontSize: 12, color: "var(--cm-text-2)", fontWeight: 400, marginTop: 2 }}>
+                    {romanizeAddr(h.addr)}
+                  </div>
+                )}
+              </span>
+            </div>
             <div className="qrow"><span className="k">{t("telephone")}</span><span className="v">{h.tel_no ?? "—"}</span></div>
             <div className="qrow">
               <span className="k">{t("website")}</span>

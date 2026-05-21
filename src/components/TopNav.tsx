@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
 import NextLink from "next/link";
@@ -15,6 +15,19 @@ export function TopNav() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
+  const langWrapRef = useRef<HTMLDivElement>(null);
+
+  // 바깥 클릭 시 드롭다운 닫기 (mousedown 사용 — onClick 전에 발생하지 않도록)
+  useEffect(() => {
+    if (!langOpen) return;
+    const onClick = (e: MouseEvent) => {
+      if (langWrapRef.current && !langWrapRef.current.contains(e.target as Node)) {
+        setLangOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, [langOpen]);
 
   const NAV_ITEMS = [
     { href: "/", label: t("home") },
@@ -24,10 +37,11 @@ export function TopNav() {
     { href: `/search?q=${encodeURIComponent(tSpecialty("치과", locale))}`, label: t("dental") },
   ];
 
-  // 다른 로케일로 전환할 URL 생성 (next-intl localePrefix=as-needed)
+  // 명시적 locale prefix — 항상 절대 경로 사용 (Vercel middleware 캐시 우회)
   const buildLocaleHref = (target: string) => {
-    if (target === routing.defaultLocale) return pathname;
-    return `/${target}${pathname}`;
+    const prefix = target === routing.defaultLocale ? "" : `/${target}`;
+    // pathname 자체에 prefix 가 이미 없도록 next-intl이 처리
+    return `${prefix}${pathname || "/"}`;
   };
 
   return (
@@ -43,20 +57,13 @@ export function TopNav() {
       </nav>
       <span className="spacer" />
 
-      {/* 언어 드롭다운 */}
-      <div className="lang-dropdown desktop-only" style={{ position: "relative" }}>
+      <div className="lang-dropdown desktop-only" ref={langWrapRef} style={{ position: "relative" }}>
         <button
           type="button"
           className="lang-pill"
           aria-haspopup="menu"
           aria-expanded={langOpen}
           onClick={() => setLangOpen((v) => !v)}
-          onBlur={(e) => {
-            // 다음 포커스 대상이 dropdown 안이면 유지
-            if (!e.currentTarget.parentElement?.contains(e.relatedTarget as Node)) {
-              setTimeout(() => setLangOpen(false), 100);
-            }
-          }}
         >
           <Icon name="globe" size={13} />
           {LOCALE_LABELS[locale] ?? locale.toUpperCase()}
@@ -71,18 +78,17 @@ export function TopNav() {
               background: "#fff", border: "1px solid var(--cm-line)",
               borderRadius: 10, padding: 6,
               boxShadow: "var(--cm-shadow)",
-              zIndex: 100, minWidth: 140,
+              zIndex: 100, minWidth: 160,
               display: "flex", flexDirection: "column", gap: 2,
             }}
           >
             {routing.locales.map((l) => (
-              <NextLink
+              <a
                 key={l}
                 href={buildLocaleHref(l)}
-                prefetch={false}
                 onClick={() => setLangOpen(false)}
                 style={{
-                  padding: "8px 10px",
+                  padding: "8px 12px",
                   borderRadius: 6,
                   fontSize: 13.5,
                   fontWeight: l === locale ? 700 : 500,
@@ -93,7 +99,7 @@ export function TopNav() {
                 role="menuitem"
               >
                 {LOCALE_LABELS[l]}
-              </NextLink>
+              </a>
             ))}
           </div>
         )}
@@ -126,12 +132,7 @@ export function TopNav() {
           />
           <nav className="mobile-menu" role="menu">
             {NAV_ITEMS.map((n) => (
-              <Link
-                key={n.href}
-                href={n.href}
-                role="menuitem"
-                onClick={() => setMobileOpen(false)}
-              >
+              <Link key={n.href} href={n.href} role="menuitem" onClick={() => setMobileOpen(false)}>
                 {n.label}
               </Link>
             ))}
@@ -140,20 +141,20 @@ export function TopNav() {
                 Language
               </div>
               {routing.locales.map((l) => (
-                <NextLink
+                <a
                   key={l}
                   href={buildLocaleHref(l)}
-                  prefetch={false}
                   onClick={() => setMobileOpen(false)}
                   style={{
                     padding: "10px 8px",
                     color: l === locale ? "var(--cm-primary)" : "var(--cm-ink)",
                     fontWeight: l === locale ? 700 : 500,
                     display: "block",
+                    textDecoration: "none",
                   }}
                 >
                   {LOCALE_LABELS[l]}
-                </NextLink>
+                </a>
               ))}
             </div>
           </nav>

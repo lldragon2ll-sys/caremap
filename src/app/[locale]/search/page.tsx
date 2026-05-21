@@ -10,6 +10,7 @@ import { HospitalMap, type MapPin } from "@/components/HospitalMap";
 import { SearchTracker } from "@/components/SearchTracker";
 import { sizeCategory } from "@/lib/hospital-util";
 import { tSido, tSiggu, tKind, searchKeyToKorean } from "@/lib/i18n-dict";
+import { romanizeYadm } from "@/lib/romanize";
 import type { Hospital } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -236,7 +237,14 @@ export default async function SearchPage({
                   <Badge kind="verified">HIRA</Badge>
                   {h.cl_cd_nm && <Badge kind="kind">{tKind(h.cl_cd_nm, locale)}</Badge>}
                 </div>
-                <div className="name">{h.yadm_nm}</div>
+                <div className="name">
+                  {h.yadm_nm}
+                  {locale !== "ko" && (
+                    <span style={{ fontSize: 11.5, color: "var(--cm-text-2)", fontWeight: 500, marginLeft: 6 }}>
+                      ({romanizeYadm(h.yadm_nm)})
+                    </span>
+                  )}
+                </div>
                 <div className="spec">
                   {tKind(h.cl_cd_nm ?? "병원", locale)} · {[tSido(h.sido_cd_nm ?? "", locale), tSiggu(h.sggu_cd_nm ?? "", locale), h.emdong_nm].filter(Boolean).join(" ")}
                 </div>

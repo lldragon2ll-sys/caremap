@@ -6,6 +6,7 @@ import { HospitalLogo } from "./HospitalLogo";
 import type { Hospital } from "@/lib/types";
 import { sizeCategory } from "@/lib/hospital-util";
 import { tKind, tSido, tSiggu } from "@/lib/i18n-dict";
+import { romanizeYadm } from "@/lib/romanize";
 
 export type Layout = "card" | "compact";
 
@@ -43,8 +44,13 @@ export function HospitalCard({ h, layout = "card" }: { h: Hospital; layout?: Lay
         <HospitalLogo h={h} size={56} className="card-logo" />
       </Link>
       <div className="body">
-        <Link href={href} className="name" style={{ textDecoration: "none" }}>
-          {h.yadm_nm}
+        <Link href={href} className="name" style={{ textDecoration: "none", flexDirection: "column", alignItems: "flex-start" }}>
+          <span>{h.yadm_nm}</span>
+          {locale !== "ko" && (
+            <span style={{ fontSize: 11.5, color: "var(--cm-text-2)", fontWeight: 500, marginTop: 2 }}>
+              {romanizeYadm(h.yadm_nm)}
+            </span>
+          )}
         </Link>
         <div className="specialty">
           {tKind(h.cl_cd_nm ?? "병원", locale)} · {region || tSido(h.sido_cd_nm ?? "", locale) || "—"}
