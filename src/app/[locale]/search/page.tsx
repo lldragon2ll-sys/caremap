@@ -230,23 +230,12 @@ export default async function SearchPage({
         )}
 
         {rows.length > 0 && (
-          <SearchResultsClient rows={rows} locale={locale} />
-        )}
-
-        {totalPages > 1 && (
-          <div style={{ display: "flex", justifyContent: "center", gap: 8, padding: 16, fontSize: 13 }}>
-            {page > 1 && (
-              <Link href={buildHref({ q, area, kind, page: page - 1 })} className="cm-filter-chip">
-                {t("prev")}
-              </Link>
-            )}
-            <span style={{ alignSelf: "center", color: "var(--cm-text-2)" }}>{page} / {totalPages}</span>
-            {page < totalPages && (
-              <Link href={buildHref({ q, area, kind, page: page + 1 })} className="cm-filter-chip">
-                {t("next")}
-              </Link>
-            )}
-          </div>
+          <SearchResultsClient
+            rows={rows}
+            locale={locale}
+            searchQuery={{ q, area, kind }}
+            serverPagination={{ page, totalPages }}
+          />
         )}
       </div>
 
