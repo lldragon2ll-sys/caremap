@@ -6,6 +6,7 @@
  */
 import type { Hospital } from "./types";
 import { tSido, tSiggu, tKind } from "./i18n-dict";
+import { romanizeYadm, romanizeAddr } from "./romanize";
 
 type Locale = "ko" | "en" | "ja" | "zh" | string;
 
@@ -76,6 +77,9 @@ export function generateDescription(h: Hospital, locale: Locale): DescriptionSec
   const dominant = dominantField(h);
   const band = sizeBand(h, locale);
   const region = [sidoName, sigguName, h.emdong_nm].filter(Boolean).join(" ");
+  // 비한국어 로케일에서는 상호/주소를 로마자로 표기
+  const displayName = locale === "ko" ? h.yadm_nm : romanizeYadm(h.yadm_nm);
+  const displayAddr = h.addr ? (locale === "ko" ? h.addr : romanizeAddr(h.addr)) : null;
 
   const sections: DescriptionSection[] = [];
 
@@ -89,7 +93,7 @@ export function generateDescription(h: Hospital, locale: Locale): DescriptionSec
 
   if (locale === "ko") {
     overviewLines.push(
-      `${h.yadm_nm}은(는) ${region}에 위치한 ${kindName}으로, ${band}에 해당합니다.`,
+      `${displayName}은(는) ${region}에 위치한 ${kindName}으로, ${band}에 해당합니다.`,
     );
     if (years != null) {
       overviewLines.push(
@@ -100,7 +104,7 @@ export function generateDescription(h: Hospital, locale: Locale): DescriptionSec
     }
   } else if (locale === "en") {
     overviewLines.push(
-      `${h.yadm_nm} is a ${kindName} located in ${region}, classified as a ${band}.`,
+      `${displayName} is a ${kindName} located in ${region}, classified as a ${band}.`,
     );
     if (years != null) {
       overviewLines.push(
@@ -111,7 +115,7 @@ export function generateDescription(h: Hospital, locale: Locale): DescriptionSec
     }
   } else if (locale === "ja") {
     overviewLines.push(
-      `${h.yadm_nm}は${region}に位置する${kindName}で、${band}に該当します。`,
+      `${displayName}は${region}に位置する${kindName}で、${band}に該当します。`,
     );
     if (years != null) {
       overviewLines.push(
@@ -122,7 +126,7 @@ export function generateDescription(h: Hospital, locale: Locale): DescriptionSec
     }
   } else if (locale === "zh") {
     overviewLines.push(
-      `${h.yadm_nm}是位于${region}的${kindName},属于${band}。`,
+      `${displayName}是位于${region}的${kindName},属于${band}。`,
     );
     if (years != null) {
       overviewLines.push(
@@ -182,11 +186,11 @@ export function generateDescription(h: Hospital, locale: Locale): DescriptionSec
     : locale === "zh" ? "位置"
     : "위치";
   const locLines: string[] = [];
-  if (h.addr) {
-    if (locale === "ko") locLines.push(`주소: ${h.addr}.`);
-    else if (locale === "en") locLines.push(`Address: ${h.addr}.`);
-    else if (locale === "ja") locLines.push(`住所:${h.addr}。`);
-    else if (locale === "zh") locLines.push(`地址:${h.addr}。`);
+  if (displayAddr) {
+    if (locale === "ko") locLines.push(`주소: ${displayAddr}.`);
+    else if (locale === "en") locLines.push(`Address: ${displayAddr}.`);
+    else if (locale === "ja") locLines.push(`住所:${displayAddr}。`);
+    else if (locale === "zh") locLines.push(`地址:${displayAddr}。`);
   }
   if (sigguName) {
     if (locale === "ko") locLines.push(`${sigguName} 지역 거주자나 인근 직장인들이 편리하게 이용할 수 있는 위치입니다.`);

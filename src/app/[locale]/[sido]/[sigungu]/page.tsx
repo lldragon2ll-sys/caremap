@@ -3,7 +3,7 @@ import { Link } from "@/i18n/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { getHospitalsByRegion } from "@/lib/db";
 import { HospitalCard } from "@/components/HospitalCard";
-import { tSido, tSiggu, tSpecialty } from "@/lib/i18n-dict";
+import { tSido, tSiggu, tSpecialty, pick4 } from "@/lib/i18n-dict";
 
 export const dynamic = "force-dynamic";
 
@@ -21,12 +21,18 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const sidoDisplay = tSido(sidoNm, locale);
   const sigguDisplay = tSiggu(sigguNm, locale);
   return {
-    title: locale === "en"
-      ? `Clinics in ${sidoDisplay} ${sigguDisplay} — Search by Specialty`
-      : `${sidoNm} ${sigguNm} 병원 - 진료과목별 검색`,
-    description: locale === "en"
-      ? `Find clinics, dentists, Korean medicine and hospitals in ${sidoDisplay} ${sigguDisplay} by specialty.`
-      : `${sidoNm} ${sigguNm} 지역의 병원·의원·치과·한의원을 진료과목별로 찾아보세요.`,
+    title: pick4(locale,
+      `${sidoNm} ${sigguNm} 병원 - 진료과목별 검색`,
+      `Clinics in ${sidoDisplay} ${sigguDisplay} — Search by Specialty`,
+      `${sidoDisplay} ${sigguDisplay}のクリニック — 診療科別検索`,
+      `${sidoDisplay} ${sigguDisplay}诊所 — 按科室搜索`,
+    ),
+    description: pick4(locale,
+      `${sidoNm} ${sigguNm} 지역의 병원·의원·치과·한의원을 진료과목별로 찾아보세요.`,
+      `Find clinics, dentists, Korean medicine and hospitals in ${sidoDisplay} ${sigguDisplay} by specialty.`,
+      `${sidoDisplay} ${sigguDisplay}地域のクリニック・歯科・韓医院を診療科別に検索。`,
+      `按科室搜索${sidoDisplay} ${sigguDisplay}的诊所、牙科、韩医院。`,
+    ),
     alternates: {
       canonical: locale === "ko"
         ? `/${encodeURIComponent(sidoNm)}/${encodeURIComponent(sigguNm)}`
@@ -86,7 +92,7 @@ export default async function SigunguPage({ params }: { params: Params }) {
           ))}
         </div>
         <div className="stat-row">
-          <span><b>{total.toLocaleString()}</b> {locale === "en" ? "clinics" : "개 병원"}</span>
+          <span><b>{total.toLocaleString()}</b> {pick4(locale, "개 병원", "clinics", "件", "家")}</span>
         </div>
       </section>
 
@@ -102,7 +108,7 @@ export default async function SigunguPage({ params }: { params: Params }) {
         </div>
         {rows.length === 0 ? (
           <p style={{ color: "var(--cm-text-2)", fontSize: 14 }}>
-            {locale === "en" ? "No data available." : "데이터가 없습니다."}
+            {pick4(locale, "데이터가 없습니다.", "No data available.", "データがありません。", "无数据。")}
           </p>
         ) : (
           <div className="cm-card-grid">

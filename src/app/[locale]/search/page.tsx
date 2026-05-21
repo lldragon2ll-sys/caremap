@@ -7,7 +7,7 @@ import { Icon } from "@/components/Icon";
 import { HospitalMap, type MapPin } from "@/components/HospitalMap";
 import { SearchTracker } from "@/components/SearchTracker";
 import { SearchResultsClient } from "@/components/SearchResultsClient";
-import { tKind, searchKeyToKorean } from "@/lib/i18n-dict";
+import { tKind, searchKeyToKorean, pick4 } from "@/lib/i18n-dict";
 import type { Hospital } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -35,9 +35,12 @@ export async function generateMetadata({
   const term = [kind, area, q].filter(Boolean).join(" ");
   return {
     title: term ? `'${term}' — ${t("title")}` : t("title"),
-    description: locale === "en"
-      ? "Search clinics by name, region or specialty across Korea."
-      : "병원명, 지역, 진료과목으로 전국 병원을 검색하세요.",
+    description: pick4(locale,
+      "병원명, 지역, 진료과목으로 전국 병원을 검색하세요.",
+      "Search clinics by name, region or specialty across Korea.",
+      "クリニック名・地域・診療科で韓国全国のクリニックを検索。",
+      "按诊所名、地区或科室搜索韩国全国诊所。",
+    ),
     robots: { index: false, follow: true },
   };
 }
@@ -144,9 +147,12 @@ export default async function SearchPage({
     return parts.join(" ");
   })();
 
-  const suggestions = locale === "en"
-    ? ["Internal Medicine", "Plastic Surgery", "Dental", "Korean Medicine", "Pediatrics"]
-    : ["내과", "성형외과", "치과", "한의원", "소아청소년과"];
+  const suggestions = (() => {
+    if (locale === "en") return ["Internal Medicine", "Plastic Surgery", "Dental", "Korean Medicine", "Pediatrics"];
+    if (locale === "ja") return ["内科", "美容外科", "歯科", "韓医院", "小児科"];
+    if (locale === "zh") return ["内科", "整形外科", "牙科", "韩医院", "儿科"];
+    return ["내과", "성형외과", "치과", "한의원", "소아청소년과"];
+  })();
 
   return (
     <div className={`cm-split${showMap ? "" : " no-map"}`}>
@@ -190,7 +196,7 @@ export default async function SearchPage({
 
           <div className="filters">
             <FilterLink locale={locale} params={{ q, area, kind: "" }} active={!kind}>
-              {locale === "en" ? "All" : "전체"}
+              {pick4(locale, "전체", "All", "すべて", "全部")}
             </FilterLink>
             {["의원", "치과의원", "한의원", "병원", "종합병원", "상급종합"].map((k) => (
               <FilterLink locale={locale} key={k} params={{ q, area, kind: k }} active={kind === k}>

@@ -201,6 +201,17 @@ export function localizedSpecialtyKey(ko: string, locale: Lang): string {
   return tSpecialty(ko, locale);
 }
 
+/**
+ * 인라인 4개 언어 텍스트 picker. messages.json 키로 빼기 애매한
+ * 한 줄짜리 동적 문구(예: "병원 정보 없음", "Home" 브레드크럼 등) 용.
+ */
+export function pick4(locale: Lang, ko: string, en: string, ja: string, zh: string): string {
+  if (locale === "en") return en;
+  if (locale === "ja") return ja;
+  if (locale === "zh") return zh;
+  return ko;
+}
+
 // TopNav 토글용
 export const LOCALE_LABELS: Record<string, string> = {
   ko: "한국어",

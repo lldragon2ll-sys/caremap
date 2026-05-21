@@ -139,7 +139,7 @@ export function TopNav() {
             ))}
             <div style={{ borderTop: "1px solid var(--cm-line)", marginTop: 8, paddingTop: 8 }}>
               <div style={{ fontSize: 12, color: "var(--cm-text-2)", fontWeight: 600, padding: "4px 8px" }}>
-                Language
+                {locale === "ko" ? "언어" : locale === "ja" ? "言語" : locale === "zh" ? "语言" : "Language"}
               </div>
               {routing.locales.map((l) => (
                 <button

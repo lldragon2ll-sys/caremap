@@ -3,7 +3,7 @@ import { Link } from "@/i18n/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { getSidoList, getSigguList, getHospitalsByRegion } from "@/lib/db";
 import { HospitalCard } from "@/components/HospitalCard";
-import { tSido, tSiggu } from "@/lib/i18n-dict";
+import { tSido, tSiggu, pick4 } from "@/lib/i18n-dict";
 
 export const dynamic = "force-dynamic";
 
@@ -14,12 +14,18 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const decoded = decodeURIComponent(sido);
   const sidoDisplay = tSido(decoded, locale);
   return {
-    title: locale === "en"
-      ? `Clinics in ${sidoDisplay} — Search by District & Specialty`
-      : `${decoded} 병원 찾기 - 진료과·시군구별 검색`,
-    description: locale === "en"
-      ? `Find clinics, dentists, Korean medicine and hospitals in ${sidoDisplay} by district.`
-      : `${decoded} 지역의 병원/의원/한의원/치과 등을 시군구별로 검색하세요.`,
+    title: pick4(locale,
+      `${decoded} 병원 찾기 - 진료과·시군구별 검색`,
+      `Clinics in ${sidoDisplay} — Search by District & Specialty`,
+      `${sidoDisplay}のクリニック — 区・診療科別検索`,
+      `${sidoDisplay}诊所 — 按区·科室搜索`,
+    ),
+    description: pick4(locale,
+      `${decoded} 지역의 병원/의원/한의원/치과 등을 시군구별로 검색하세요.`,
+      `Find clinics, dentists, Korean medicine and hospitals in ${sidoDisplay} by district.`,
+      `${sidoDisplay}地域のクリニック・歯科・韓医院を区別に検索。`,
+      `按区搜索${sidoDisplay}的诊所、牙科、韩医院。`,
+    ),
     alternates: {
       canonical: locale === "ko"
         ? `/${encodeURIComponent(decoded)}`
@@ -65,8 +71,8 @@ export default async function SidoPage({ params }: { params: Params }) {
           })}
         </p>
         <div className="stat-row">
-          <span><b>{total.toLocaleString()}</b> {locale === "en" ? "clinics" : "개 병원"}</span>
-          <span><b>{sigguList.length}</b> {locale === "en" ? "districts" : "개 시·군·구"}</span>
+          <span><b>{total.toLocaleString()}</b> {pick4(locale, "개 병원", "clinics", "件", "家")}</span>
+          <span><b>{sigguList.length}</b> {pick4(locale, "개 시·군·구", "districts", "区", "区")}</span>
         </div>
       </section>
 

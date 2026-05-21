@@ -1,5 +1,6 @@
 import { getTranslations, getLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
+import { tSpecialty } from "@/lib/i18n-dict";
 
 const SITE_NAME = process.env.NEXT_PUBLIC_SITE_NAME ?? "CAREMAP";
 
@@ -9,14 +10,12 @@ export async function Footer() {
   const tSite = await getTranslations("site");
   const tNav = await getTranslations("nav");
 
-  // 검색 chips — 진료과 영문/한글 자동 매칭
-  const specialties = [
-    { q: locale === "en" ? "Plastic Surgery" : "성형외과", label: locale === "en" ? "Plastic Surgery" : "성형외과" },
-    { q: locale === "en" ? "Dermatology" : "피부과", label: locale === "en" ? "Dermatology" : "피부과" },
-    { q: locale === "en" ? "Dental" : "치과", label: locale === "en" ? "Dental" : "치과" },
-    { q: locale === "en" ? "Ophthalmology" : "안과", label: locale === "en" ? "Ophthalmology" : "안과" },
-    { q: locale === "en" ? "Korean Medicine" : "한의원", label: locale === "en" ? "Korean Medicine" : "한의원" },
-  ];
+  // 검색 chips — 4개 언어 자동 변환 (i18n-dict)
+  const specialtyKeys = ["성형외과", "피부과", "치과", "안과", "한의원"];
+  const specialties = specialtyKeys.map((ko) => {
+    const label = tSpecialty(ko, locale);
+    return { q: label, label };
+  });
 
   return (
     <footer className="cm-footer">

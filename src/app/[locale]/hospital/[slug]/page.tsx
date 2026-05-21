@@ -12,7 +12,7 @@ import { ViewTracker } from "@/components/ViewTracker";
 import { SaveButton } from "@/components/SaveButton";
 import { ShareButton } from "@/components/ShareButton";
 import { mapDeepLinks, sizeCategory } from "@/lib/hospital-util";
-import { tKind, tSido, tSiggu } from "@/lib/i18n-dict";
+import { tKind, tSido, tSiggu, pick4 } from "@/lib/i18n-dict";
 import { generateDescription } from "@/lib/hospital-description";
 import { romanizeYadm, romanizeAddr } from "@/lib/romanize";
 import type { Hospital } from "@/lib/types";
@@ -41,7 +41,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   } catch {}
   if (!h) {
     return {
-      title: locale === "en" ? "Clinic not found" : "병원 정보 없음",
+      title: pick4(locale, "병원 정보 없음", "Clinic not found", "クリニック情報がありません", "未找到诊所信息"),
     };
   }
   const region = [tSido(h.sido_cd_nm ?? "", locale), tSiggu(h.sggu_cd_nm ?? "", locale)]
@@ -51,7 +51,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const title = t("metaTitle", { name: h.yadm_nm });
   const desc = t("metaDescription", {
     name: h.yadm_nm,
-    kind: kind || (locale === "en" ? "Clinic" : "병원"),
+    kind: kind || pick4(locale, "병원", "Clinic", "クリニック", "诊所"),
     region: region || "—",
     tel: h.tel_no ?? "-",
     drCount: h.dr_tot_cnt,
@@ -77,6 +77,8 @@ function formatDate(s: string | null, locale: string): string | null {
   const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(s);
   if (!m) return s;
   if (locale === "en") return `${m[1]}-${m[2]}-${m[3]}`;
+  if (locale === "ja") return `${m[1]}年${m[2]}月${m[3]}日`;
+  if (locale === "zh") return `${m[1]}年${m[2]}月${m[3]}日`;
   return `${m[1]}년 ${m[2]}월 ${m[3]}일`;
 }
 
@@ -110,7 +112,7 @@ function buildHospitalLD(h: Hospital, siteUrl: string, locale: string): Record<s
 function buildBreadcrumbLD(h: Hospital, siteUrl: string, locale: string): Record<string, unknown> {
   const prefix = locale === "ko" ? "" : `/${locale}`;
   const items: Array<Record<string, unknown>> = [
-    { "@type": "ListItem", position: 1, name: locale === "en" ? "Home" : "홈", item: `${siteUrl}${prefix}/` },
+    { "@type": "ListItem", position: 1, name: pick4(locale, "홈", "Home", "ホーム", "首页"), item: `${siteUrl}${prefix}/` },
   ];
   let pos = 2;
   if (h.sido_cd_nm) {
@@ -137,27 +139,36 @@ function telDigits(tel: string | null): string | null {
 }
 
 function staffSummary(h: Hospital, locale: string) {
-  const labels = locale === "en" ? {
-    mdept_sdr_cnt: "Medical Specialist",
-    mdept_gdr_cnt: "Medical General",
-    mdept_intn_cnt: "Medical Intern",
-    mdept_resdnt_cnt: "Medical Resident",
-    dety_sdr_cnt: "Dental Specialist",
-    dety_gdr_cnt: "Dental General",
-    cmdc_sdr_cnt: "Korean Medicine Specialist",
-    cmdc_gdr_cnt: "Korean Medicine General",
-    pnurs_cnt: "Midwife",
-  } : {
-    mdept_sdr_cnt: "의과 전문의",
-    mdept_gdr_cnt: "의과 일반의",
-    mdept_intn_cnt: "의과 인턴",
-    mdept_resdnt_cnt: "의과 레지던트",
-    dety_sdr_cnt: "치과 전문의",
-    dety_gdr_cnt: "치과 일반의",
-    cmdc_sdr_cnt: "한방 전문의",
-    cmdc_gdr_cnt: "한방 일반의",
-    pnurs_cnt: "조산사",
-  };
+  const labels = (() => {
+    if (locale === "en") return {
+      mdept_sdr_cnt: "Medical Specialist", mdept_gdr_cnt: "Medical General",
+      mdept_intn_cnt: "Medical Intern",    mdept_resdnt_cnt: "Medical Resident",
+      dety_sdr_cnt: "Dental Specialist",   dety_gdr_cnt: "Dental General",
+      cmdc_sdr_cnt: "Korean Medicine Specialist", cmdc_gdr_cnt: "Korean Medicine General",
+      pnurs_cnt: "Midwife",
+    };
+    if (locale === "ja") return {
+      mdept_sdr_cnt: "医科 専門医", mdept_gdr_cnt: "医科 一般医",
+      mdept_intn_cnt: "医科 インターン", mdept_resdnt_cnt: "医科 レジデント",
+      dety_sdr_cnt: "歯科 専門医", dety_gdr_cnt: "歯科 一般医",
+      cmdc_sdr_cnt: "韓医 専門医", cmdc_gdr_cnt: "韓医 一般医",
+      pnurs_cnt: "助産師",
+    };
+    if (locale === "zh") return {
+      mdept_sdr_cnt: "医科 专科医师", mdept_gdr_cnt: "医科 全科医师",
+      mdept_intn_cnt: "医科 实习生", mdept_resdnt_cnt: "医科 住院医师",
+      dety_sdr_cnt: "牙科 专科医师", dety_gdr_cnt: "牙科 全科医师",
+      cmdc_sdr_cnt: "韩医 专科医师", cmdc_gdr_cnt: "韩医 全科医师",
+      pnurs_cnt: "助产士",
+    };
+    return {
+      mdept_sdr_cnt: "의과 전문의", mdept_gdr_cnt: "의과 일반의",
+      mdept_intn_cnt: "의과 인턴",  mdept_resdnt_cnt: "의과 레지던트",
+      dety_sdr_cnt: "치과 전문의",  dety_gdr_cnt: "치과 일반의",
+      cmdc_sdr_cnt: "한방 전문의",  cmdc_gdr_cnt: "한방 일반의",
+      pnurs_cnt: "조산사",
+    };
+  })();
   return ([
     ["mdept_sdr_cnt", h.mdept_sdr_cnt],
     ["mdept_gdr_cnt", h.mdept_gdr_cnt],
@@ -187,16 +198,19 @@ export default async function HospitalPage({ params }: { params: Params }) {
   const tel = telDigits(h.tel_no);
   const staff = staffSummary(h, locale);
   const size = sizeCategory(h);
-  const sizeLabel = locale === "en"
-    ? (size.tier === "대형" ? "Large" : size.tier === "중형" ? "Medium" : "Small")
-    : size.tier;
+  const sizeLabel = (() => {
+    if (locale === "en") return size.tier === "대형" ? "Large" : size.tier === "중형" ? "Medium" : "Small";
+    if (locale === "ja") return size.tier === "대형" ? "大規模" : size.tier === "중형" ? "中規模" : "小規模";
+    if (locale === "zh") return size.tier === "대형" ? "大型" : size.tier === "중형" ? "中型" : "小型";
+    return size.tier;
+  })();
   const specialistTotal = (h.mdept_sdr_cnt ?? 0) + (h.dety_sdr_cnt ?? 0) + (h.cmdc_sdr_cnt ?? 0);
   const mapEmbed = h.y_pos != null && h.x_pos != null
     ? `https://www.google.com/maps?q=${h.y_pos},${h.x_pos}&z=16&output=embed`
     : null;
   const region = [tSido(h.sido_cd_nm ?? "", locale), tSiggu(h.sggu_cd_nm ?? "", locale), h.emdong_nm]
     .filter(Boolean).join(" ");
-  const kindLabel = tKind(h.cl_cd_nm ?? "", locale) || (locale === "en" ? "Clinic" : "병원");
+  const kindLabel = tKind(h.cl_cd_nm ?? "", locale) || pick4(locale, "병원", "Clinic", "クリニック", "诊所");
   const weekDaysRaw = t.raw("weekDays") as string[];
   const weekDaySuffix = t("weekDaySuffix");
   const links = mapDeepLinks(h);
@@ -332,7 +346,7 @@ export default async function HospitalPage({ params }: { params: Params }) {
                     <div style={{ fontSize: 12.5, color: "var(--cm-text-2)" }}>{s.label}</div>
                     <div style={{ fontSize: 22, fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>
                       {s.count}<span style={{ fontSize: 13, fontWeight: 500, marginLeft: 4 }}>
-                        {locale === "en" ? "" : "명"}
+                        {locale === "ko" ? "명" : locale === "ja" ? "名" : locale === "zh" ? "名" : ""}
                       </span>
                     </div>
                   </div>
@@ -515,16 +529,15 @@ export default async function HospitalPage({ params }: { params: Params }) {
           <div className="section-head">
             <div>
               <h2>
-                {locale === "en" ? "Also explored"
-                  : locale === "ja" ? "一緒に見ているクリニック"
-                  : locale === "zh" ? "用户也在浏览"
-                  : "함께 알아본 병원"}
+                {pick4(locale, "함께 알아본 병원", "Also explored", "一緒に見ているクリニック", "用户也在浏览")}
               </h2>
               <div className="sub">
-                {locale === "en" ? `Other ${kindLabel} in ${tSiggu(h.sggu_cd_nm ?? "", locale)}`
-                  : locale === "ja" ? `${tSiggu(h.sggu_cd_nm ?? "", locale)}の他の${kindLabel}`
-                  : locale === "zh" ? `${tSiggu(h.sggu_cd_nm ?? "", locale)}的其他${kindLabel}`
-                  : `${tSiggu(h.sggu_cd_nm ?? "", locale)}의 다른 ${kindLabel}`}
+                {pick4(locale,
+                  `${tSiggu(h.sggu_cd_nm ?? "", locale)}의 다른 ${kindLabel}`,
+                  `Other ${kindLabel} in ${tSiggu(h.sggu_cd_nm ?? "", locale)}`,
+                  `${tSiggu(h.sggu_cd_nm ?? "", locale)}の他の${kindLabel}`,
+                  `${tSiggu(h.sggu_cd_nm ?? "", locale)}的其他${kindLabel}`,
+                )}
               </div>
             </div>
           </div>

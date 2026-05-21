@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { HospitalCard } from "@/components/HospitalCard";
 import { SpecialtyTile } from "@/components/SpecialtyTile";
 import { Icon } from "@/components/Icon";
-import { tSido, tSiggu, tSpecialty } from "@/lib/i18n-dict";
+import { tSido, tSiggu, tSpecialty, tKind, pick4 } from "@/lib/i18n-dict";
 import type { Hospital } from "@/lib/types";
 
 export const revalidate = 3600;
@@ -72,6 +72,7 @@ export default async function Home({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("home");
+  const tNav = await getTranslations("nav");
   const [sidos, top, popularSearches, mostViewed] = await Promise.all([
     getSidoList().catch(() => []),
     getAestheticClinics(6),
@@ -80,8 +81,8 @@ export default async function Home({
   ]);
   const totalCount = sidos.reduce((a, b) => a + b.count, 0);
 
-  // 검색어 표시는 locale 따라
-  const searchKey = (ko: string) => (locale === "en" ? tSpecialty(ko, "en") : ko);
+  // 검색어 표시는 locale 따라 (외국어 → 해당 언어 키워드로 폼 제출 / 한국어는 원본 한국어)
+  const searchKey = (ko: string) => (locale === "ko" ? ko : tSpecialty(ko, locale));
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.caremap.store";
   const sitePrefix = locale === "ko" ? "" : `/${locale}`;
@@ -133,17 +134,17 @@ export default async function Home({
             <label htmlFor="kind">{t("searchKind")}</label>
             <select id="kind" name="kind" defaultValue="">
               <option value="">{t("kindAll")}</option>
-              <option value="의원">{locale === "en" ? "Clinic" : "의원"}</option>
-              <option value="치과의원">{locale === "en" ? "Dental Clinic" : "치과의원"}</option>
-              <option value="한의원">{locale === "en" ? "Korean Medicine Clinic" : "한의원"}</option>
-              <option value="병원">{locale === "en" ? "Hospital" : "병원"}</option>
-              <option value="종합병원">{locale === "en" ? "General Hospital" : "종합병원"}</option>
-              <option value="상급종합">{locale === "en" ? "Tertiary Hospital" : "상급종합병원"}</option>
+              <option value="의원">{tKind("의원", locale)}</option>
+              <option value="치과의원">{tKind("치과의원", locale)}</option>
+              <option value="한의원">{tKind("한의원", locale)}</option>
+              <option value="병원">{tKind("병원", locale)}</option>
+              <option value="종합병원">{tKind("종합병원", locale)}</option>
+              <option value="상급종합">{tKind("상급종합", locale)}</option>
             </select>
           </div>
           <button type="submit" className="submit">
             <Icon name="search" size={14} color="#fff" />
-            {t("kindAll") === "All" ? "Search" : "검색"}
+            {tNav("searchButton")}
           </button>
         </form>
 
@@ -189,8 +190,8 @@ export default async function Home({
         <section className="cm-section">
           <div className="section-head">
             <div>
-              <h2>{locale === "en" ? "Trending Searches" : locale === "ja" ? "人気の検索" : locale === "zh" ? "热门搜索" : "실시간 인기 검색어"}</h2>
-              <div className="sub">{locale === "en" ? "Last 7 days" : locale === "ja" ? "過去7日間" : locale === "zh" ? "近7天" : "최근 7일 기준"}</div>
+              <h2>{pick4(locale, "실시간 인기 검색어", "Trending Searches", "人気の検索", "热门搜索")}</h2>
+              <div className="sub">{pick4(locale, "최근 7일 기준", "Last 7 days", "過去7日間", "近7天")}</div>
             </div>
           </div>
           <ol style={{
@@ -249,8 +250,8 @@ export default async function Home({
         <section className="cm-section">
           <div className="section-head">
             <div>
-              <h2>{locale === "en" ? "Most Viewed Clinics" : locale === "ja" ? "よく見られているクリニック" : locale === "zh" ? "高人气诊所" : "많이 본 클리닉"}</h2>
-              <div className="sub">{locale === "en" ? "Trending in the last 7 days" : locale === "ja" ? "過去7日間で人気" : locale === "zh" ? "近7天关注度高" : "최근 7일 조회수 상위"}</div>
+              <h2>{pick4(locale, "많이 본 클리닉", "Most Viewed Clinics", "よく見られているクリニック", "高人气诊所")}</h2>
+              <div className="sub">{pick4(locale, "최근 7일 조회수 상위", "Trending in the last 7 days", "過去7日間で人気", "近7天关注度高")}</div>
             </div>
           </div>
           <div className="cm-card-grid">

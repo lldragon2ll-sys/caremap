@@ -6,7 +6,7 @@ import { HospitalLogo } from "./HospitalLogo";
 import type { Hospital } from "@/lib/types";
 import { sizeCategory } from "@/lib/hospital-util";
 import { tKind, tSido, tSiggu } from "@/lib/i18n-dict";
-import { romanizeYadm } from "@/lib/romanize";
+import { romanizeYadm, romanizeAddr } from "@/lib/romanize";
 
 export type Layout = "card" | "compact";
 
@@ -29,10 +29,10 @@ export function HospitalCard({ h, layout = "card" }: { h: Hospital; layout?: Lay
   const region = [tSiggu(h.sggu_cd_nm ?? "", locale), h.emdong_nm].filter(Boolean).join(" ");
   const spec = specialistCount(h);
   const size = sizeCategory(h);
-  // size.label은 한글이라 영문일 때 변환
-  const sizeLabel = locale === "en"
-    ? (size.tier === "대형" ? t("tierLarge") : size.tier === "중형" ? t("tierMid") : t("tierSmall"))
-    : size.label;
+  // size.label은 한글이라 비한국어 로케일에서는 messages의 tier 라벨로 대체
+  const sizeLabel = locale === "ko"
+    ? size.label
+    : (size.tier === "대형" ? t("tierLarge") : size.tier === "중형" ? t("tierMid") : t("tierSmall"));
 
   return (
     <article className={`cm-hcard${layout === "compact" ? " compact" : ""}`}>
@@ -76,7 +76,7 @@ export function HospitalCard({ h, layout = "card" }: { h: Hospital; layout?: Lay
             <div className="line">
               <Icon name="pin" size={13} color="var(--cm-text-3)" />
               <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                {h.addr}
+                {locale === "ko" ? h.addr : romanizeAddr(h.addr)}
               </span>
             </div>
           )}
