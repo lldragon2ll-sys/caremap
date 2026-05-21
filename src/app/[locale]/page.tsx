@@ -1,6 +1,6 @@
 import { Link } from "@/i18n/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { getSidoList } from "@/lib/db";
+import { getSidoList, getTopSearches, getTopViewedHospitals } from "@/lib/db";
 import { supabase } from "@/lib/supabase";
 import { HospitalCard } from "@/components/HospitalCard";
 import { SpecialtyTile } from "@/components/SpecialtyTile";
@@ -72,9 +72,11 @@ export default async function Home({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("home");
-  const [sidos, top] = await Promise.all([
+  const [sidos, top, popularSearches, mostViewed] = await Promise.all([
     getSidoList().catch(() => []),
     getAestheticClinics(6),
+    getTopSearches(8),
+    getTopViewedHospitals(6),
   ]);
   const totalCount = sidos.reduce((a, b) => a + b.count, 0);
 
@@ -182,6 +184,51 @@ export default async function Home({
         </div>
       </section>
 
+      {/* 실시간 인기 검색어 (최근 7일) */}
+      {popularSearches.length > 0 && (
+        <section className="cm-section">
+          <div className="section-head">
+            <div>
+              <h2>{locale === "en" ? "Trending Searches" : locale === "ja" ? "人気の検索" : locale === "zh" ? "热门搜索" : "실시간 인기 검색어"}</h2>
+              <div className="sub">{locale === "en" ? "Last 7 days" : locale === "ja" ? "過去7日間" : locale === "zh" ? "近7天" : "최근 7일 기준"}</div>
+            </div>
+          </div>
+          <ol style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
+            gap: 8,
+            padding: 0,
+            listStyle: "none",
+            margin: 0,
+          }}>
+            {popularSearches.map((s, i) => (
+              <li key={s.query}>
+                <Link
+                  href={`/search?q=${encodeURIComponent(s.query)}`}
+                  className="cm-xlink"
+                  style={{ display: "flex", gap: 10, alignItems: "center" }}
+                >
+                  <span style={{
+                    width: 22, height: 22, borderRadius: 4,
+                    background: i < 3 ? "var(--cm-primary)" : "var(--cm-surface-2)",
+                    color: i < 3 ? "#fff" : "var(--cm-text-2)",
+                    display: "grid", placeItems: "center",
+                    fontSize: 12, fontWeight: 700,
+                    fontVariantNumeric: "tabular-nums",
+                  }}>{i + 1}</span>
+                  <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {s.query}
+                  </span>
+                  <span style={{ fontSize: 11.5, color: "var(--cm-text-3)" }}>
+                    {s.cnt.toLocaleString()}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
+
       {top.length > 0 && (
         <section className="cm-section surface">
           <div className="section-head">
@@ -193,6 +240,21 @@ export default async function Home({
           </div>
           <div className="cm-card-grid">
             {top.map((h) => <HospitalCard key={h.id} h={h} />)}
+          </div>
+        </section>
+      )}
+
+      {/* 많이 본 클리닉 (최근 7일) — 실제 페이지뷰 기반 */}
+      {mostViewed.length > 0 && (
+        <section className="cm-section">
+          <div className="section-head">
+            <div>
+              <h2>{locale === "en" ? "Most Viewed Clinics" : locale === "ja" ? "よく見られているクリニック" : locale === "zh" ? "高人气诊所" : "많이 본 클리닉"}</h2>
+              <div className="sub">{locale === "en" ? "Trending in the last 7 days" : locale === "ja" ? "過去7日間で人気" : locale === "zh" ? "近7天关注度高" : "최근 7일 조회수 상위"}</div>
+            </div>
+          </div>
+          <div className="cm-card-grid">
+            {mostViewed.map((h) => <HospitalCard key={h.id} h={h} />)}
           </div>
         </section>
       )}

@@ -2,13 +2,16 @@ import type { Metadata } from "next";
 import { Link } from "@/i18n/navigation";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { getAllSlugs, getHospitalBySlug } from "@/lib/db";
+import { getAllSlugs, getHospitalBySlug, getRelatedHospitals } from "@/lib/db";
 import { Badge } from "@/components/Badge";
 import { Icon } from "@/components/Icon";
 import { HospitalLogo } from "@/components/HospitalLogo";
 import { HospitalMap } from "@/components/HospitalMap";
+import { HospitalCard } from "@/components/HospitalCard";
+import { ViewTracker } from "@/components/ViewTracker";
 import { mapDeepLinks, sizeCategory } from "@/lib/hospital-util";
 import { tKind, tSido, tSiggu } from "@/lib/i18n-dict";
+import { generateDescription } from "@/lib/hospital-description";
 import type { Hospital } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -197,6 +200,10 @@ export default async function HospitalPage({ params }: { params: Params }) {
 
   const introEst = h.estb_dd ? t("establishedOn", { date: formatDate(h.estb_dd, locale) ?? "" }) : "";
 
+  // 자동 세부 설명 + 함께 알아본 병원
+  const descSections = generateDescription(h, locale);
+  const related = await getRelatedHospitals(h, 4);
+
   return (
     <>
       <script
@@ -207,6 +214,9 @@ export default async function HospitalPage({ params }: { params: Params }) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(buildBreadcrumbLD(h, siteUrl, locale)) }}
       />
+
+      {/* 클라이언트 마운트 시 조회수 +1 */}
+      <ViewTracker hospitalId={h.id} />
 
       <div className="cm-detail">
         <div>
@@ -281,16 +291,20 @@ export default async function HospitalPage({ params }: { params: Params }) {
 
           <section id="overview" className="cm-section-card">
             <h3>{t("overviewTitle")}</h3>
-            <p style={{ fontSize: 14, color: "var(--cm-text)", lineHeight: 1.6, margin: 0 }}>
-              {t("introTemplate", {
-                name: h.yadm_nm,
-                region,
-                kind: kindLabel,
-                est: introEst,
-                drCount: h.dr_tot_cnt,
-              })}
-            </p>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 14 }}>
+            {/* 자동 생성된 풍부한 섹션 */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 16, marginTop: 4 }}>
+              {descSections.map((s) => (
+                <div key={s.title}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "var(--cm-text-2)", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                    {s.title}
+                  </div>
+                  <p style={{ fontSize: 14, color: "var(--cm-text)", lineHeight: 1.6, margin: 0 }}>
+                    {s.body}
+                  </p>
+                </div>
+              ))}
+            </div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 16 }}>
               {h.cl_cd_nm && <span className="cm-chip">{kindLabel}</span>}
               {h.sggu_cd_nm && <span className="cm-chip">{tSiggu(h.sggu_cd_nm, locale)}</span>}
             </div>
@@ -463,6 +477,31 @@ export default async function HospitalPage({ params }: { params: Params }) {
           </div>
         </aside>
       </div>
+
+      {/* 함께 알아본 병원 */}
+      {related.length > 0 && (
+        <section className="cm-section surface" style={{ borderTop: "1px solid var(--cm-line)" }}>
+          <div className="section-head">
+            <div>
+              <h2>
+                {locale === "en" ? "Also explored"
+                  : locale === "ja" ? "一緒に見ているクリニック"
+                  : locale === "zh" ? "用户也在浏览"
+                  : "함께 알아본 병원"}
+              </h2>
+              <div className="sub">
+                {locale === "en" ? `Other ${kindLabel} in ${tSiggu(h.sggu_cd_nm ?? "", locale)}`
+                  : locale === "ja" ? `${tSiggu(h.sggu_cd_nm ?? "", locale)}の他の${kindLabel}`
+                  : locale === "zh" ? `${tSiggu(h.sggu_cd_nm ?? "", locale)}的其他${kindLabel}`
+                  : `${tSiggu(h.sggu_cd_nm ?? "", locale)}의 다른 ${kindLabel}`}
+              </div>
+            </div>
+          </div>
+          <div className="cm-card-grid">
+            {related.map((r) => <HospitalCard key={r.id} h={r} />)}
+          </div>
+        </section>
+      )}
     </>
   );
 }

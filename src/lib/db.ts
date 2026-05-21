@@ -182,6 +182,63 @@ export async function getHospitalsBySpecialty(
  * pg_trgm 인덱스(yadm_nm)와 일반 ilike 모두 활용.
  * 다중 단어 입력 시 공백 기준 토큰화하여 AND 조합.
  */
+/** 최근 7일 인기 검색어 (v_top_searches) */
+export async function getTopSearches(limit = 8): Promise<{ query: string; cnt: number }[]> {
+  try {
+    const { data, error } = await supabase
+      .from("v_top_searches")
+      .select("query, cnt")
+      .limit(limit);
+    if (error) throw error;
+    return ((data ?? []) as { query: string; cnt: number }[]).map((r) => ({
+      query: r.query, cnt: Number(r.cnt),
+    }));
+  } catch {
+    return [];
+  }
+}
+
+/** 최근 7일 많이 본 병원 (v_top_viewed_hospitals) */
+export async function getTopViewedHospitals(limit = 6): Promise<Hospital[]> {
+  try {
+    const { data, error } = await supabase
+      .from("v_top_viewed_hospitals")
+      .select("*")
+      .limit(limit);
+    if (error) throw error;
+    return (data ?? []) as Hospital[];
+  } catch {
+    return [];
+  }
+}
+
+/** 함께 알아본 병원 — 같은 시군구 + 비슷한 카테고리 (기준 병원 제외) */
+export async function getRelatedHospitals(h: Hospital, limit = 4): Promise<Hospital[]> {
+  if (!h.sggu_cd_nm) return [];
+  // 1차: 같은 시군구·같은 종별
+  let q = supabase
+    .from("hospitals")
+    .select("*")
+    .eq("sido_cd_nm", h.sido_cd_nm ?? "")
+    .eq("sggu_cd_nm", h.sggu_cd_nm)
+    .neq("id", h.id)
+    .order("dr_tot_cnt", { ascending: false })
+    .limit(limit * 2);
+  if (h.cl_cd_nm) q = q.eq("cl_cd_nm", h.cl_cd_nm);
+  const { data, error } = await q;
+  if (error) return [];
+  let rows = (data ?? []) as Hospital[];
+  // 이름에 공통 키워드 (예: 성형/피부/치과) 있으면 우선
+  const keyword = ["성형", "피부", "치과", "안과", "한의", "정형", "산부인", "소아"]
+    .find((k) => (h.yadm_nm ?? "").includes(k));
+  if (keyword) {
+    const matchFirst = rows.filter((r) => r.yadm_nm.includes(keyword));
+    const others = rows.filter((r) => !r.yadm_nm.includes(keyword));
+    rows = [...matchFirst, ...others];
+  }
+  return rows.slice(0, limit);
+}
+
 export async function searchHospitals(
   q: string,
   limit = 30,

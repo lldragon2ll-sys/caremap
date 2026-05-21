@@ -7,6 +7,7 @@ import { Badge } from "@/components/Badge";
 import { Icon } from "@/components/Icon";
 import { HospitalLogo } from "@/components/HospitalLogo";
 import { HospitalMap, type MapPin } from "@/components/HospitalMap";
+import { SearchTracker } from "@/components/SearchTracker";
 import { sizeCategory } from "@/lib/hospital-util";
 import { tSido, tSiggu, tKind, searchKeyToKorean } from "@/lib/i18n-dict";
 import type { Hospital } from "@/lib/types";
@@ -151,6 +152,7 @@ export default async function SearchPage({
 
   return (
     <div className={`cm-split${showMap ? "" : " no-map"}`}>
+      <SearchTracker q={q} area={area} kind={kind} locale={locale} />
       <div className="results">
         <div className="results-head">
           <div className="crumbs">
