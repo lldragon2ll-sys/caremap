@@ -3,8 +3,7 @@ import Link from "next/link";
 import { getHospitalsBySpecialty } from "@/lib/db";
 import { HospitalCard } from "@/components/HospitalCard";
 
-export const dynamicParams = true;
-export const revalidate = 86400;
+export const dynamic = "force-dynamic";
 
 type Params = Promise<{ sido: string; sigungu: string; specialty: string }>;
 

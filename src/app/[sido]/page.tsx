@@ -3,8 +3,9 @@ import Link from "next/link";
 import { getSidoList, getSigguList, getHospitalsByRegion } from "@/lib/db";
 import { HospitalCard } from "@/components/HospitalCard";
 
-export const revalidate = 86400;
-export const dynamicParams = true;
+// Next.js 16 + 한국어 dynamic segment에서 x-next-cache-tags 헤더 ERR_INVALID_CHAR 회피
+// ASCII slug 마이그레이션 전까지 force-dynamic + CDN 캐시 사용
+export const dynamic = "force-dynamic";
 
 type Params = Promise<{ sido: string }>;
 

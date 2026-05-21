@@ -8,8 +8,7 @@ import { HospitalLogo } from "@/components/HospitalLogo";
 import { mapDeepLinks, sizeCategory } from "@/lib/hospital-util";
 import type { Hospital } from "@/lib/types";
 
-export const dynamicParams = true;
-export const revalidate = 86400;
+export const dynamic = "force-dynamic";
 
 const SITE_NAME = process.env.NEXT_PUBLIC_SITE_NAME ?? "CAREMAP";
 
