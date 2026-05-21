@@ -196,9 +196,10 @@ export function SearchResultsClient({
 
   return (
     <>
-      <div style={{
+      <div className="sort-bar-mobile" style={{
         display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap",
-        padding: "0 0 12px",
+        padding: "12px 24px",
+        borderBottom: "1px solid var(--cm-line)",
       }}>
         <span style={{ fontSize: 12, color: "var(--cm-text-2)", fontWeight: 600 }}>{labels.sortLabel}</span>
         {(["default", "doctors", "size"] as const).map((k) => (
@@ -305,9 +306,9 @@ export function SearchResultsClient({
 
       {/* 거리 모드: 클라이언트 페이지네이션 (전체 결과 대상) */}
       {usingBulk && totalClientPages > 1 && (
-        <div style={{
+        <div className="pager-mobile" style={{
           display: "flex", justifyContent: "center", alignItems: "center",
-          gap: 8, padding: 16, fontSize: 13,
+          gap: 8, padding: "16px 24px", fontSize: 13,
         }}>
           <button
             type="button"
@@ -335,9 +336,9 @@ export function SearchResultsClient({
 
       {/* 기본 모드: 서버 페이지네이션 (URL ?page=N) — 거리 모드일 때는 숨김 */}
       {!usingBulk && !bulkLoading && serverPagination.totalPages > 1 && (
-        <div style={{
+        <div className="pager-mobile" style={{
           display: "flex", justifyContent: "center", alignItems: "center",
-          gap: 8, padding: 16, fontSize: 13,
+          gap: 8, padding: "16px 24px", fontSize: 13,
         }}>
           {serverPagination.page > 1 && (
             <Link

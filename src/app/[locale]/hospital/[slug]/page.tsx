@@ -241,7 +241,9 @@ export default async function HospitalPage({ params }: { params: Params }) {
       <div className="cm-detail">
         <div>
           <div className="hero-img">
-            <span className="placeholder-tag">clinic exterior · 16:9 photo</span>
+            <span className="placeholder-tag">
+              {pick4(locale, "HIRA 인증 의료기관", "HIRA-verified clinic", "HIRA認証医療機関", "HIRA认证医疗机构")}
+            </span>
           </div>
 
           <header className="head">

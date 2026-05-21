@@ -36,6 +36,8 @@ export function SearchAutocomplete({
   const wrapRef = useRef<HTMLDivElement>(null);
   const debounce = useRef<ReturnType<typeof setTimeout> | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+  // 초기 mount 시 defaultValue로 인해 dropdown이 자동으로 열리지 않도록
+  const userInteracted = useRef(false);
 
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
@@ -51,6 +53,8 @@ export function SearchAutocomplete({
       setOpen(false);
       return;
     }
+    // 사용자가 직접 타이핑하기 전까지는 자동완성을 fetch하지 않음
+    if (!userInteracted.current) return;
     if (debounce.current) clearTimeout(debounce.current);
     debounce.current = setTimeout(async () => {
       try {
@@ -94,7 +98,7 @@ export function SearchAutocomplete({
         className={className}
         placeholder={placeholder}
         value={value}
-        onChange={(e) => setValue(e.target.value)}
+        onChange={(e) => { userInteracted.current = true; setValue(e.target.value); }}
         onFocus={() => items.length > 0 && setOpen(true)}
         onKeyDown={(e) => {
           if (e.key === "ArrowDown") {

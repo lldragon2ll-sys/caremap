@@ -112,9 +112,10 @@ export function TopNav() {
         href="/search"
         className="btn-primary"
         style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
+        aria-label={t("searchButton")}
       >
         <Icon name="search" size={14} color="#fff" />
-        {t("searchButton")}
+        <span className="btn-label">{t("searchButton")}</span>
       </Link>
       <button
         type="button"

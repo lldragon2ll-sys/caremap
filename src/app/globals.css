@@ -382,18 +382,30 @@ button { font: inherit; cursor: pointer; }
 /* ─────────────────── Hospital detail ─────────────────── */
 .cm-detail { display: grid; grid-template-columns: 1fr 360px; gap: 40px; padding: 32px 48px; max-width: 1280px; margin: 0 auto; }
 .cm-detail .hero-img {
-  height: 320px; border-radius: var(--cm-radius-lg);
+  height: 220px; border-radius: var(--cm-radius-lg);
   background:
-    repeating-linear-gradient(135deg, transparent 0 18px, rgba(37,99,235,.06) 18px 19px),
-    linear-gradient(180deg, #eff6ff, #f8fafc);
+    radial-gradient(60% 80% at 20% 20%, rgba(255,255,255,.55), transparent 60%),
+    radial-gradient(50% 70% at 80% 70%, rgba(125, 211, 252, .45), transparent 60%),
+    linear-gradient(135deg, var(--cm-primary-50) 0%, #e0f2fe 50%, #dbeafe 100%);
   border: 1px solid var(--cm-line);
   margin-bottom: 24px; position: relative; overflow: hidden;
+  display: flex; align-items: flex-end; padding: 20px 24px;
+}
+.cm-detail .hero-img::before {
+  /* 의료 십자 패턴 워터마크 */
+  content: ""; position: absolute; inset: 0;
+  background-image:
+    radial-gradient(circle, rgba(37,99,235,.07) 1.5px, transparent 1.5px);
+  background-size: 22px 22px;
+  pointer-events: none;
 }
 .cm-detail .hero-img .placeholder-tag {
-  position: absolute; top: 16px; left: 16px;
-  font-family: var(--cm-font-mono); font-size: 11px;
-  color: var(--cm-primary-700); background: rgba(255,255,255,.7);
-  padding: 4px 8px; border-radius: 4px;
+  position: relative;
+  font-family: var(--cm-font-sans); font-size: 11.5px; font-weight: 600;
+  color: var(--cm-primary-700); background: rgba(255,255,255,.85);
+  padding: 5px 10px; border-radius: 999px;
+  letter-spacing: 0.02em;
+  box-shadow: 0 1px 2px rgba(15,23,42,.06);
 }
 .cm-detail .head { margin-bottom: 24px; }
 .cm-detail .head h1 {
@@ -538,32 +550,83 @@ button { font: inherit; cursor: pointer; }
 .cm-footer ul a:hover { color: var(--cm-primary); }
 .cm-footer .legal { display: flex; justify-content: space-between; padding-top: 20px; border-top: 1px solid var(--cm-line); flex-wrap: wrap; gap: 8px; }
 
-/* ─────────────────── Mobile responsive ─────────────────── */
+/* ─────────────────── Tablet (≤1100px) ─────────────────── */
+@media (max-width: 1100px) {
+  .cm-split { grid-template-columns: 380px 1fr; }
+  .cm-spec-grid { grid-template-columns: repeat(4, 1fr); }
+  .cm-card-grid { grid-template-columns: repeat(2, 1fr); }
+  .cm-footer .cols { grid-template-columns: 1fr 1fr 1fr; gap: 24px; }
+}
+
+/* ─────────────────── Mobile (≤900px) ─────────────────── */
 @media (max-width: 900px) {
-  .cm-nav { padding: 0 16px; gap: 12px; height: 56px; }
+  .cm-nav { padding: 0 14px; gap: 8px; height: 56px; }
   .cm-nav .navlinks { display: none; }
   .cm-nav .lang-pill, .cm-nav .btn-ghost, .cm-nav .desktop-only { display: none; }
   .cm-nav .mobile-menu-btn { display: inline-flex; }
-  .cm-hero { padding: 36px 16px 32px; }
-  .cm-hero h1 { font-size: 32px; }
-  .cm-hero .lede { font-size: 15px; }
-  .cm-section { padding: 36px 16px; }
-  .cm-spec-grid { grid-template-columns: repeat(4, 1fr); }
+  .cm-nav .btn-primary {
+    /* Icon-only on mobile to save space */
+    padding: 8px 10px; gap: 0;
+  }
+  .cm-nav .btn-primary .btn-label { display: none; }
+
+  .cm-hero { padding: 32px 16px 28px; }
+  .cm-hero h1 { font-size: 30px; line-height: 1.15; }
+  .cm-hero .lede { font-size: 14.5px; }
+
+  .cm-section { padding: 32px 16px; }
+  .cm-spec-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
   .cm-card-grid { grid-template-columns: 1fr; }
-  .cm-xlink-grid { grid-template-columns: repeat(2, 1fr); }
+  .cm-xlink-grid { grid-template-columns: 1fr; }
   .cm-searchbar { grid-template-columns: 1fr; }
   .cm-searchbar .field { border-right: 0; border-bottom: 1px solid var(--cm-line); }
   .cm-searchbar .submit { padding: 14px; }
-  .cm-detail { grid-template-columns: 1fr; gap: 20px; padding: 16px; }
+
+  .cm-detail { grid-template-columns: 1fr; gap: 18px; padding: 16px; }
+  .cm-detail .hero-img { min-height: 160px; }
   .cm-side { position: static; }
+
+  /* Search list — much tighter, no offscreen pin */
   .cm-split { grid-template-columns: 1fr; min-height: auto; }
+  .cm-split.no-map { max-width: none; }
   .cm-split .results { max-height: none; border-right: 0; }
+  .cm-split .results-head { padding: 14px 16px; }
+  .cm-split .results-head h1 { font-size: 19px; }
+  .cm-split .results-head .filters { gap: 5px; margin-top: 10px; }
+  .cm-result-row {
+    padding: 14px 16px; gap: 12px;
+    grid-template-columns: 64px 1fr;
+  }
+  .cm-result-row .pin-num {
+    top: 12px; left: 6px;
+    width: 18px; height: 18px; font-size: 10px;
+    border-width: 1.5px;
+  }
+  .cm-result-row .name { font-size: 14.5px; }
+  .cm-result-row .spec { font-size: 12px; }
+  .cm-result-row .meta { font-size: 11.5px; gap: 8px; }
   .cm-map { display: none; }
-  .cm-cat-hero { padding: 28px 16px 24px; }
-  .cm-cat-hero h1 { font-size: 28px; }
-  .cm-footer { padding: 24px 16px; }
+
+  .cm-cat-hero { padding: 26px 16px 22px; }
+  .cm-cat-hero h1 { font-size: 26px; }
+  .cm-cat-hero .intro { font-size: 14px; }
+
+  .cm-footer { padding: 28px 16px 24px; }
   .cm-footer .cols { grid-template-columns: 1fr 1fr; gap: 24px; }
   .cm-doctors { grid-template-columns: 1fr; }
+
+  /* SearchResultsClient sort/filter bar — give it proper padding so it isn't clipped */
+  .sort-bar-mobile { padding: 12px 16px !important; }
+  /* Pagination row */
+  .pager-mobile { padding: 12px 16px !important; }
+}
+
+/* ─────────────────── Small mobile (≤420px) ─────────────────── */
+@media (max-width: 420px) {
+  .cm-hero h1 { font-size: 26px; }
+  .cm-split .results-head h1 { font-size: 17px; }
+  .cm-result-row { padding: 12px 14px; gap: 10px; grid-template-columns: 56px 1fr; }
+  .cm-spec-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
 @keyframes cm-skeleton {
