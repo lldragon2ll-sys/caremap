@@ -8,7 +8,7 @@ import { Icon } from "@/components/Icon";
 import { HospitalLogo } from "@/components/HospitalLogo";
 import { HospitalMap, type MapPin } from "@/components/HospitalMap";
 import { sizeCategory } from "@/lib/hospital-util";
-import { tSido, tSiggu, tKind } from "@/lib/i18n-dict";
+import { tSido, tSiggu, tKind, searchKeyToKorean } from "@/lib/i18n-dict";
 import type { Hospital } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -45,11 +45,28 @@ export async function generateMetadata({
 
 async function performSearch(
   q: string, area: string, kind: string, offset: number, limit: number,
+  locale: string,
 ): Promise<{ rows: Hospital[]; total: number }> {
   if (q) {
-    const res = await searchHospitals(q, limit * 4, 0);
-    let rows = res.rows;
-    if (area) rows = rows.filter((r) => (r.sggu_cd_nm ?? "").includes(area));
+    // 영문/일본어/중국어 키워드를 한국어로 매핑 — DB가 한국어 데이터
+    const koreanTerms = searchKeyToKorean(q, locale);
+    // 모든 매칭 후보로 OR 검색
+    const seen = new Set<number>();
+    const merged: Hospital[] = [];
+    for (const term of koreanTerms) {
+      const res = await searchHospitals(term, limit * 4, 0);
+      for (const r of res.rows) {
+        if (!seen.has(r.id)) {
+          seen.add(r.id);
+          merged.push(r);
+        }
+      }
+    }
+    let rows = merged;
+    if (area) {
+      const areaTerms = searchKeyToKorean(area, locale);
+      rows = rows.filter((r) => areaTerms.some((t) => (r.sggu_cd_nm ?? "").includes(t)));
+    }
     if (kind) rows = rows.filter((r) => (r.cl_cd_nm ?? "") === kind);
     return { rows: rows.slice(offset, offset + limit), total: rows.length };
   }
@@ -106,7 +123,7 @@ export default async function SearchPage({
 
   if (hasQuery) {
     try {
-      const res = await performSearch(q, area, kind, offset, PAGE_SIZE);
+      const res = await performSearch(q, area, kind, offset, PAGE_SIZE, locale);
       rows = res.rows;
       total = res.total;
     } catch (e) {

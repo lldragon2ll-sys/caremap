@@ -208,3 +208,38 @@ export const LOCALE_LABELS: Record<string, string> = {
   ja: "日本語",
   zh: "中文",
 };
+
+/**
+ * 영문/일본어/중국어 검색어 → 한국어 변환 (DB가 한국어이기 때문).
+ * 정확 매칭 우선, 그 다음 부분 매칭. 매칭 없으면 원본 그대로.
+ * 예: "Plastic Surgery" → "성형외과", "美容外科" → "성형외과"
+ */
+export function searchKeyToKorean(input: string, locale: Lang): string[] {
+  if (!input) return [];
+  if (locale === "ko") return [input];
+  const lower = input.toLowerCase().trim();
+  const matches: string[] = [];
+
+  const checkMap = <T extends Record<string, { en: string; ja: string; zh: string }>>(map: T) => {
+    for (const [ko, m] of Object.entries(map)) {
+      const langVal = m[locale as "en" | "ja" | "zh"];
+      if (!langVal) continue;
+      const langLower = langVal.toLowerCase();
+      if (langLower === lower) {
+        // 정확 매칭 우선
+        if (!matches.includes(ko)) matches.unshift(ko);
+      } else if (langLower.includes(lower) || lower.includes(langLower)) {
+        if (!matches.includes(ko)) matches.push(ko);
+      }
+    }
+  };
+
+  checkMap(SPECIALTY_MAP);
+  checkMap(KIND_MAP);
+  checkMap(SIDO_MAP);
+  checkMap(SIGGU_MAP);
+
+  // 결과 없으면 원본도 시도 (병원명 영문이 있을 수도 있음)
+  if (matches.length === 0) matches.push(input);
+  return matches;
+}
