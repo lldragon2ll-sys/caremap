@@ -6,7 +6,7 @@ import { Icon } from "./Icon";
 import { HospitalLogo } from "./HospitalLogo";
 import { sizeCategory } from "@/lib/hospital-util";
 import { tSido, tSiggu, tKind } from "@/lib/i18n-dict";
-import { romanizeYadm } from "@/lib/romanize";
+import { romanizeYadm, romanizeAddr } from "@/lib/romanize";
 import type { Hospital } from "@/lib/types";
 
 type Labels = {
@@ -222,7 +222,11 @@ export function SearchResultsClient({
                 )}
               </div>
               <div className="spec">
-                {tKind(h.cl_cd_nm ?? "병원", locale)} · {[tSido(h.sido_cd_nm ?? "", locale), tSiggu(h.sggu_cd_nm ?? "", locale), h.emdong_nm].filter(Boolean).join(" ")}
+                {tKind(h.cl_cd_nm ?? "병원", locale)} · {[
+                  tSido(h.sido_cd_nm ?? "", locale),
+                  tSiggu(h.sggu_cd_nm ?? "", locale),
+                  h.emdong_nm && locale !== "ko" ? romanizeAddr(h.emdong_nm) : h.emdong_nm,
+                ].filter(Boolean).join(" ")}
               </div>
               <div className="meta">
                 <span style={{ display: "inline-flex", gap: 4, alignItems: "center", fontWeight: 600, color: size.color }}>

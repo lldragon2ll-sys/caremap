@@ -208,8 +208,11 @@ export default async function HospitalPage({ params }: { params: Params }) {
   const mapEmbed = h.y_pos != null && h.x_pos != null
     ? `https://www.google.com/maps?q=${h.y_pos},${h.x_pos}&z=16&output=embed`
     : null;
-  const region = [tSido(h.sido_cd_nm ?? "", locale), tSiggu(h.sggu_cd_nm ?? "", locale), h.emdong_nm]
-    .filter(Boolean).join(" ");
+  const region = [
+    tSido(h.sido_cd_nm ?? "", locale),
+    tSiggu(h.sggu_cd_nm ?? "", locale),
+    h.emdong_nm && locale !== "ko" ? romanizeAddr(h.emdong_nm) : h.emdong_nm,
+  ].filter(Boolean).join(" ");
   const kindLabel = tKind(h.cl_cd_nm ?? "", locale) || pick4(locale, "병원", "Clinic", "クリニック", "诊所");
   const weekDaysRaw = t.raw("weekDays") as string[];
   const weekDaySuffix = t("weekDaySuffix");

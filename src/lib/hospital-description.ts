@@ -76,7 +76,11 @@ export function generateDescription(h: Hospital, locale: Locale): DescriptionSec
   const years = yearsAgo(h.estb_dd);
   const dominant = dominantField(h);
   const band = sizeBand(h, locale);
-  const region = [sidoName, sigguName, h.emdong_nm].filter(Boolean).join(" ");
+  // 비한국어 로케일에서는 emdong_nm(청담동 등)도 로마자로 표기
+  const emdongDisplay = h.emdong_nm
+    ? (locale === "ko" ? h.emdong_nm : romanizeAddr(h.emdong_nm))
+    : null;
+  const region = [sidoName, sigguName, emdongDisplay].filter(Boolean).join(" ");
   // 비한국어 로케일에서는 상호/주소를 로마자로 표기
   const displayName = locale === "ko" ? h.yadm_nm : romanizeYadm(h.yadm_nm);
   const displayAddr = h.addr ? (locale === "ko" ? h.addr : romanizeAddr(h.addr)) : null;

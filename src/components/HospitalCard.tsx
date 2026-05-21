@@ -26,7 +26,8 @@ export function HospitalCard({ h, layout = "card" }: { h: Hospital; layout?: Lay
   const locale = useLocale();
   const href = `/hospital/${encodeURIComponent(h.slug)}`;
   const tel = telHref(h.tel_no);
-  const region = [tSiggu(h.sggu_cd_nm ?? "", locale), h.emdong_nm].filter(Boolean).join(" ");
+  const emdongDisplay = h.emdong_nm && locale !== "ko" ? romanizeAddr(h.emdong_nm) : h.emdong_nm;
+  const region = [tSiggu(h.sggu_cd_nm ?? "", locale), emdongDisplay].filter(Boolean).join(" ");
   const spec = specialistCount(h);
   const size = sizeCategory(h);
   // size.label은 한글이라 비한국어 로케일에서는 messages의 tier 라벨로 대체
