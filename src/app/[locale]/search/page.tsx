@@ -213,19 +213,35 @@ export default async function SearchPage({
         </div>
 
         {hasQuery && rows.length === 0 && !error && (
-          <div style={{ padding: "48px 24px", textAlign: "center" }}>
-            <div style={{ fontSize: 32, marginBottom: 8 }} aria-hidden>🔍</div>
-            <h2 style={{ fontSize: 17, fontWeight: 700, margin: "0 0 6px" }}>{t("empty")}</h2>
-            <p style={{ fontSize: 13.5, color: "var(--cm-text-2)", margin: "0 0 18px", lineHeight: 1.55 }}>
+          <div style={{ padding: "56px 24px 48px", textAlign: "center" }}>
+            <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="var(--cm-text-3)"
+              strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"
+              style={{ margin: "0 auto 14px", opacity: 0.65 }} aria-hidden>
+              <circle cx="11" cy="11" r="7" />
+              <path d="m20 20-3.5-3.5" />
+              <path d="M9 11h4" opacity="0.5" />
+            </svg>
+            <h2 style={{ fontSize: 18, fontWeight: 700, margin: "0 0 6px" }}>{t("empty")}</h2>
+            <p style={{ fontSize: 13.5, color: "var(--cm-text-2)", margin: "0 0 22px", lineHeight: 1.55, maxWidth: 360, marginInline: "auto" }}>
               {t("emptyDesc")}
             </p>
-            <div style={{ display: "flex", gap: 6, justifyContent: "center", flexWrap: "wrap" }}>
+            <div style={{ display: "flex", gap: 6, justifyContent: "center", flexWrap: "wrap", marginBottom: 24 }}>
               {suggestions.map((c) => (
                 <Link key={c} href={`/search?q=${encodeURIComponent(c)}`} className="cm-chip">
                   {c}
                 </Link>
               ))}
             </div>
+            <Link
+              href="/"
+              style={{
+                display: "inline-flex", alignItems: "center", gap: 6,
+                fontSize: 13.5, fontWeight: 600,
+                color: "var(--cm-primary)", textDecoration: "none",
+              }}
+            >
+              ← {tNav("home")}
+            </Link>
           </div>
         )}
 

@@ -1,10 +1,11 @@
+"use client";
 import { useTranslations, useLocale } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { Icon } from "./Icon";
 import { Badge } from "./Badge";
-import { HospitalLogo } from "./HospitalLogo";
+import { SpecialtyIcon, accentFor } from "./SpecialtyIcon";
 import type { Hospital } from "@/lib/types";
-import { sizeCategory } from "@/lib/hospital-util";
+import { sizeCategory, mapDeepLinks } from "@/lib/hospital-util";
 import { tKind, tSido, tSiggu } from "@/lib/i18n-dict";
 import { romanizeYadm, romanizeAddr } from "@/lib/romanize";
 
@@ -20,80 +21,99 @@ function specialistCount(h: Hospital): number {
   return (h.mdept_sdr_cnt ?? 0) + (h.dety_sdr_cnt ?? 0) + (h.cmdc_sdr_cnt ?? 0);
 }
 
+/**
+ * 정보-우선 병원 카드:
+ * - 빈 hero 이미지 영역 제거 (의미 없는 placeholder를 만들지 않음)
+ * - 좌측 4px 컬러 액센트 바 (진료과 / 종별 기준)
+ * - 진료과 SVG 아이콘 + 상호
+ * - 통계 한 줄 (의사·전문의·종별)
+ * - 주소 한 줄, 액션 버튼 2개 (자세히 / 전화)
+ */
 export function HospitalCard({ h, layout = "card" }: { h: Hospital; layout?: Layout }) {
   const t = useTranslations("card");
   const tHospital = useTranslations("hospital");
   const locale = useLocale();
   const href = `/hospital/${encodeURIComponent(h.slug)}`;
   const tel = telHref(h.tel_no);
-  const emdongDisplay = h.emdong_nm && locale !== "ko" ? romanizeAddr(h.emdong_nm) : h.emdong_nm;
-  const region = [tSiggu(h.sggu_cd_nm ?? "", locale), emdongDisplay].filter(Boolean).join(" ");
+  const region = [tSido(h.sido_cd_nm ?? "", locale), tSiggu(h.sggu_cd_nm ?? "", locale), h.emdong_nm && locale !== "ko" ? romanizeAddr(h.emdong_nm) : h.emdong_nm].filter(Boolean).join(" ");
   const spec = specialistCount(h);
   const size = sizeCategory(h);
+  const accent = accentFor(h);
+  const kindLabel = tKind(h.cl_cd_nm ?? "병원", locale);
+
   // size.label은 한글이라 비한국어 로케일에서는 messages의 tier 라벨로 대체
   const sizeLabel = locale === "ko"
     ? size.label
     : (size.tier === "대형" ? t("tierLarge") : size.tier === "중형" ? t("tierMid") : t("tierSmall"));
 
+  const map = mapDeepLinks(h);
+
   return (
-    <article className={`cm-hcard${layout === "compact" ? " compact" : ""}`}>
-      <Link href={href} className="img" style={{ textDecoration: "none" }}>
-        <div className="badge-row" style={{ alignSelf: "flex-start" }}>
-          <Badge kind="verified">{tHospital("verified").split(" ")[0]}</Badge>
-          {h.cl_cd_nm && <Badge kind="kind">{tKind(h.cl_cd_nm, locale)}</Badge>}
-        </div>
-        <HospitalLogo h={h} size={56} className="card-logo" />
-      </Link>
-      <div className="body">
-        <Link href={href} className="name" style={{ textDecoration: "none", flexDirection: "column", alignItems: "flex-start" }}>
-          <span>{h.yadm_nm}</span>
-          {locale !== "ko" && (
-            <span style={{ fontSize: 11.5, color: "var(--cm-text-2)", fontWeight: 500, marginTop: 2 }}>
-              {romanizeYadm(h.yadm_nm)}
-            </span>
-          )}
-        </Link>
-        <div className="specialty">
-          {tKind(h.cl_cd_nm ?? "병원", locale)} · {region || tSido(h.sido_cd_nm ?? "", locale) || "—"}
-        </div>
-        <div className="meta">
-          <div className="line">
-            <span
-              style={{
-                display: "inline-flex", alignItems: "center", gap: 4,
-                fontSize: 11.5, fontWeight: 600, color: size.color,
-              }}
-            >
-              <Icon name="shield" size={11} color={size.color} />
-              {sizeLabel}
-            </span>
-            {spec > 0 && (
-              <span style={{ color: "var(--cm-text-3)" }}>
-                {" · "}{t("specialists", { n: spec })}
-              </span>
+    <article
+      className={`cm-hcard cm-hcard-v2${layout === "compact" ? " compact" : ""}`}
+      style={{ "--accent-bg": accent.bg, "--accent-soft": accent.bgSoft, "--accent-ink": accent.ink } as React.CSSProperties}
+    >
+      <Link href={href} className="cm-hcard-v2__main" style={{ textDecoration: "none", color: "inherit" }}>
+        <div className="cm-hcard-v2__head">
+          <SpecialtyIcon h={h} size={22} />
+          <div className="cm-hcard-v2__head-text">
+            <h3 className="cm-hcard-v2__name">{h.yadm_nm}</h3>
+            {locale !== "ko" && (
+              <div className="cm-hcard-v2__name-en">{romanizeYadm(h.yadm_nm)}</div>
             )}
-          </div>
-          {h.addr && (
-            <div className="line">
-              <Icon name="pin" size={13} color="var(--cm-text-3)" />
-              <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                {locale === "ko" ? h.addr : romanizeAddr(h.addr)}
-              </span>
+            <div className="cm-hcard-v2__sub">
+              {kindLabel}{region ? ` · ${region}` : ""}
             </div>
+          </div>
+          <Badge kind="verified">{tHospital("verified").split(" ")[0]}</Badge>
+        </div>
+
+        <div className="cm-hcard-v2__stats">
+          <span className="cm-stat-chip" style={{ color: "var(--accent-ink)", background: "var(--accent-soft)" }}>
+            <Icon name="shield" size={11} color="var(--accent-ink)" />
+            {sizeLabel}
+          </span>
+          {h.dr_tot_cnt > 0 && (
+            <span className="cm-stat-chip">{t("doctors", { n: h.dr_tot_cnt })}</span>
+          )}
+          {spec > 0 && (
+            <span className="cm-stat-chip">{t("specialists", { n: spec })}</span>
           )}
         </div>
-      </div>
-      <div className="actions">
-        <Link href={href} className="btn">{t("details")}</Link>
+
+        {h.addr && (
+          <div className="cm-hcard-v2__addr">
+            <Icon name="pin" size={12} color="var(--cm-text-3)" />
+            <span>{locale === "ko" ? h.addr : romanizeAddr(h.addr)}</span>
+          </div>
+        )}
+      </Link>
+
+      <div className="cm-hcard-v2__actions">
+        <Link href={href} className="cm-hcard-v2__btn">
+          {t("details")}
+        </Link>
         {tel ? (
-          <a href={tel} className="btn primary">
+          <a href={tel} className="cm-hcard-v2__btn primary" aria-label={`${h.yadm_nm} ${t("call")}`}>
             <Icon name="phone" size={13} color="#fff" />
             {t("call")}
           </a>
         ) : (
-          <span className="btn" style={{ opacity: 0.5, cursor: "not-allowed" }}>
+          <span className="cm-hcard-v2__btn disabled" aria-disabled="true">
             {t("noPhone")}
           </span>
+        )}
+        {map && (
+          <a
+            href={map.kakao}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="cm-hcard-v2__btn icon"
+            aria-label="kakao map directions"
+            title={locale === "ko" ? "길찾기 (카카오맵)" : locale === "ja" ? "道案内" : locale === "zh" ? "导航" : "Directions"}
+          >
+            <Icon name="pin" size={13} color="var(--cm-ink)" />
+          </a>
         )}
       </div>
     </article>

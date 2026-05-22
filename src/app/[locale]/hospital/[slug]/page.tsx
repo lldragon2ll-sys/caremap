@@ -5,7 +5,6 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { getAllSlugs, getHospitalBySlug, getRelatedHospitals } from "@/lib/db";
 import { Badge } from "@/components/Badge";
 import { Icon } from "@/components/Icon";
-import { HospitalLogo } from "@/components/HospitalLogo";
 import { HospitalMap } from "@/components/HospitalMap";
 import { HospitalCard } from "@/components/HospitalCard";
 import { ViewTracker } from "@/components/ViewTracker";
@@ -84,14 +83,20 @@ function formatDate(s: string | null, locale: string): string | null {
 
 function buildHospitalLD(h: Hospital, siteUrl: string, locale: string): Record<string, unknown> {
   const prefix = locale === "ko" ? "" : `/${locale}`;
+  const isDental = h.cl_cd_nm?.includes("치과");
+  const isPharmacy = false;
+  const type = isDental ? "Dentist" : isPharmacy ? "Pharmacy" : "Hospital";
   const ld: Record<string, unknown> = {
     "@context": "https://schema.org",
-    "@type": h.cl_cd_nm?.includes("치과") ? "Dentist" : "Hospital",
+    "@type": type,
+    "@id": `${siteUrl}${prefix}/hospital/${encodeURIComponent(h.slug)}#hospital`,
     name: h.yadm_nm,
     url: `${siteUrl}${prefix}/hospital/${encodeURIComponent(h.slug)}`,
+    image: `${siteUrl}${prefix}/hospital/${encodeURIComponent(h.slug)}/opengraph-image`,
+    isAcceptingNewPatients: true,
   };
   if (h.tel_no) ld.telephone = h.tel_no;
-  if (h.hosp_url) ld.sameAs = h.hosp_url;
+  if (h.hosp_url) ld.sameAs = [h.hosp_url];
   if (h.addr || h.sido_cd_nm) {
     ld.address = {
       "@type": "PostalAddress",
@@ -105,7 +110,17 @@ function buildHospitalLD(h: Hospital, siteUrl: string, locale: string): Record<s
   if (h.y_pos != null && h.x_pos != null) {
     ld.geo = { "@type": "GeoCoordinates", latitude: h.y_pos, longitude: h.x_pos };
   }
-  if (h.cl_cd_nm) ld.medicalSpecialty = h.cl_cd_nm;
+  // 진료과 + 종별 → medicalSpecialty array
+  const specialties: string[] = [];
+  if (h.cl_cd_nm) specialties.push(h.cl_cd_nm);
+  for (const s of ["성형외과", "피부과", "치과", "안과", "한의원", "정형외과", "산부인과", "소아청소년과", "내과", "이비인후과"]) {
+    if (h.yadm_nm.includes(s)) specialties.push(s);
+  }
+  if (specialties.length > 0) ld.medicalSpecialty = [...new Set(specialties)];
+  if (h.estb_dd && /^\d{4}/.test(h.estb_dd)) {
+    ld.foundingDate = `${h.estb_dd.slice(0, 4)}-${h.estb_dd.slice(5, 7) || "01"}-${h.estb_dd.slice(8, 10) || "01"}`;
+  }
+  // 의료법 회피 — 사용자 리뷰는 수집하지 않으므로 aggregateRating 노출 X
   return ld;
 }
 
@@ -240,14 +255,8 @@ export default async function HospitalPage({ params }: { params: Params }) {
 
       <div className="cm-detail">
         <div>
-          <div className="hero-img">
-            <span className="placeholder-tag">
-              {pick4(locale, "HIRA 인증 의료기관", "HIRA-verified clinic", "HIRA認証医療機関", "HIRA认证医疗机构")}
-            </span>
-          </div>
-
-          <header className="head">
-            <nav style={{ fontSize: 12.5, color: "var(--cm-text-2)" }}>
+          <header className="head cm-detail-head-v2">
+            <nav style={{ fontSize: 12.5, color: "var(--cm-text-2)", marginBottom: 14 }}>
               <Link href="/" style={{ color: "var(--cm-text-2)" }}>{tNav("home")}</Link>
               {h.sido_cd_nm && (
                 <>
@@ -274,17 +283,12 @@ export default async function HospitalPage({ params }: { params: Params }) {
               {h.cl_cd_nm && <Badge kind="kind">{kindLabel}</Badge>}
               <Badge kind="new">{sizeLabel}</Badge>
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 14, margin: "8px 0" }}>
-              <HospitalLogo h={h} size={56} />
-              <div>
-                <h1 style={{ margin: 0 }}><span className="kr">{h.yadm_nm}</span></h1>
-                {locale !== "ko" && (
-                  <div style={{ fontSize: 14, color: "var(--cm-text-2)", fontWeight: 500, marginTop: 4 }}>
-                    {romanizeYadm(h.yadm_nm)}
-                  </div>
-                )}
+            <h1 style={{ margin: "12px 0 4px" }}><span className="kr">{h.yadm_nm}</span></h1>
+            {locale !== "ko" && (
+              <div style={{ fontSize: 14, color: "var(--cm-text-2)", fontWeight: 500, marginBottom: 8 }}>
+                {romanizeYadm(h.yadm_nm)}
               </div>
-            </div>
+            )}
             <div className="sub">{region} · {kindLabel}</div>
 
             <div className="stats">
@@ -551,6 +555,30 @@ export default async function HospitalPage({ params }: { params: Params }) {
           </div>
         </section>
       )}
+
+      {/* 모바일 sticky 액션바 (mobile-only via CSS) */}
+      <div className="cm-sticky-actions" role="toolbar" aria-label={t("callNow")}>
+        {tel && (
+          <a href={`tel:${tel}`} className="cm-sticky-actions__btn primary">
+            <Icon name="phone" size={16} color="#fff" />
+            <span>{t("callButton")}</span>
+          </a>
+        )}
+        {links && (
+          <a href={links.kakao} target="_blank" rel="noopener noreferrer" className="cm-sticky-actions__btn">
+            <Icon name="pin" size={16} color="var(--cm-ink)" />
+            <span>{t("actionDirections")}</span>
+          </a>
+        )}
+        <SaveButton slug={h.slug} className="cm-sticky-actions__btn icon" label="" labelSaved="" />
+        <ShareButton
+          url={`${siteUrl}${locale === "ko" ? "" : `/${locale}`}/hospital/${encodeURIComponent(h.slug)}`}
+          title={h.yadm_nm}
+          text={kindLabel}
+          className="cm-sticky-actions__btn icon"
+          label=""
+        />
+      </div>
     </>
   );
 }

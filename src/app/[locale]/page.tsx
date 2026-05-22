@@ -6,6 +6,7 @@ import { HospitalCard } from "@/components/HospitalCard";
 import { SpecialtyTile } from "@/components/SpecialtyTile";
 import { Icon } from "@/components/Icon";
 import { SearchAutocomplete } from "@/components/SearchAutocomplete";
+import { NearbyCTA } from "@/components/NearbyCTA";
 import { tSido, tSiggu, tSpecialty, tKind, pick4 } from "@/lib/i18n-dict";
 import type { Hospital } from "@/lib/types";
 
@@ -163,6 +164,10 @@ export default async function Home({
               {tSpecialty(c, locale)}
             </Link>
           ))}
+        </div>
+
+        <div style={{ marginTop: 18 }}>
+          <NearbyCTA locale={locale} />
         </div>
 
         <div className="meta-row">

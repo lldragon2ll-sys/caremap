@@ -4,6 +4,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { getHospitalsBySpecialty } from "@/lib/db";
 import { HospitalCard } from "@/components/HospitalCard";
 import { Pagination } from "@/components/Pagination";
+import { SpecialtyIcon, accentFor } from "@/components/SpecialtyIcon";
 import { tSido, tSiggu, tSpecialty, pick4 } from "@/lib/i18n-dict";
 
 export const dynamic = "force-dynamic";
@@ -200,6 +201,15 @@ export default async function SpecialtyPage({ params, searchParams }: { params: 
           <span className="sep">›</span>
           <span style={{ color: "var(--cm-ink)", fontWeight: 600 }}>{spD}</span>
         </nav>
+        <div style={{
+          display: "inline-flex", alignItems: "center", gap: 10,
+          marginBottom: 12, padding: "6px 14px 6px 10px", borderRadius: 999,
+          background: accentFor(null, sp).bgSoft, color: accentFor(null, sp).ink,
+          fontSize: 13, fontWeight: 700,
+        }}>
+          <SpecialtyIcon kind={sp} size={18} color={accentFor(null, sp).ink} />
+          {spD}
+        </div>
         <h1>
           <span className="kr">{t("h1", { sggu: sigguD, specialty: spD })}</span>
         </h1>

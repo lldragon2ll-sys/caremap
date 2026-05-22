@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "@/i18n/navigation";
 import { Badge } from "./Badge";
 import { Icon } from "./Icon";
-import { HospitalLogo } from "./HospitalLogo";
+import { SpecialtyIcon, accentFor } from "./SpecialtyIcon";
 import { sizeCategory } from "@/lib/hospital-util";
 import { tSido, tSiggu, tKind } from "@/lib/i18n-dict";
 import { romanizeYadm, romanizeAddr } from "@/lib/romanize";
@@ -60,6 +60,23 @@ export function SearchResultsClient({
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
   const [errMsg, setErrMsg] = useState<string>("");
   const [sort, setSort] = useState<SortKey>("default");
+
+  // 홈 '내 근처' CTA에서 넘어온 경우 sessionStorage의 좌표를 자동 적용
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    if (url.searchParams.get("nearby") !== "1") return;
+    try {
+      const stored = sessionStorage.getItem("caremap:nearby");
+      if (!stored) return;
+      const parsed = JSON.parse(stored) as { lat: number; lng: number; ts: number };
+      // 5분 이내만 신뢰
+      if (Date.now() - parsed.ts < 5 * 60_000 && Number.isFinite(parsed.lat) && Number.isFinite(parsed.lng)) {
+        setUserPos({ lat: parsed.lat, lng: parsed.lng });
+        setSort("distance");
+      }
+    } catch {}
+  }, []);
   // 거리순 정렬용 전체 결과 (서버 페이지 경계 무시)
   const [bulkRows, setBulkRows] = useState<Hospital[] | null>(null);
   const [bulkLoading, setBulkLoading] = useState(false);
@@ -240,6 +257,24 @@ export function SearchResultsClient({
         )}
       </div>
 
+      {/* 거리 모드 bulk fetch 중 — 스켈레톤 행 */}
+      {bulkLoading && (
+        <>
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={`sk-${i}`} className="cm-result-row-v2 cm-result-row-v2--skeleton" aria-hidden style={{ "--accent-bg": "#e2e8f0", "--accent-soft": "#f1f5f9", "--accent-ink": "#475569" } as React.CSSProperties}>
+              <div className="cm-result-row-v2__main">
+                <span className="cm-result-row-v2__num" style={{ background: "#e2e8f0" }} />
+                <div className="cm-result-row-v2__body" style={{ gap: 8 }}>
+                  <span className="cm-skeleton-line" style={{ width: "60%", height: 14 }} />
+                  <span className="cm-skeleton-line" style={{ width: "40%", height: 12 }} />
+                  <span className="cm-skeleton-line" style={{ width: "80%", height: 12 }} />
+                </div>
+              </div>
+            </div>
+          ))}
+        </>
+      )}
+
       {pagedRows.map(({ h, distance }, i) => {
         const size = sizeCategory(h);
         const distLabel =
@@ -247,60 +282,59 @@ export function SearchResultsClient({
             ? labels.away(distance < 10 ? distance.toFixed(1) : distance.toFixed(0))
             : null;
         const rowNum = usingBulk ? (clientPage - 1) * CLIENT_PAGE_SIZE + i + 1 : i + 1;
+        const accent = accentFor(h);
+        const telDigits = h.tel_no ? h.tel_no.replace(/[^\d+]/g, "") : null;
         return (
-          <Link
+          <div
             key={h.id}
-            href={`/hospital/${encodeURIComponent(h.slug)}`}
-            className="cm-result-row"
+            className="cm-result-row-v2"
+            style={{ "--accent-bg": accent.bg, "--accent-soft": accent.bgSoft, "--accent-ink": accent.ink } as React.CSSProperties}
           >
-            <span className="pin-num">{rowNum}</span>
-            <div style={{ display: "grid", placeItems: "center" }}>
-              <HospitalLogo h={h} size={64} />
-            </div>
-            <div>
-              <div className="badge-row">
-                <Badge kind="verified">HIRA</Badge>
-                {h.cl_cd_nm && <Badge kind="kind">{tKind(h.cl_cd_nm, locale)}</Badge>}
-                {distLabel && (
-                  <span style={{
-                    fontSize: 11, fontWeight: 700,
-                    color: "var(--cm-primary)",
-                    background: "var(--cm-primary-50)",
-                    padding: "2px 8px", borderRadius: 999,
-                  }}>
-                    {distLabel}
+            <Link
+              href={`/hospital/${encodeURIComponent(h.slug)}`}
+              className="cm-result-row-v2__main"
+            >
+              <span className="cm-result-row-v2__num" aria-label={`#${rowNum}`}>{rowNum}</span>
+              <div className="cm-result-row-v2__body">
+                <div className="cm-result-row-v2__head">
+                  <SpecialtyIcon h={h} size={18} />
+                  <span className="cm-result-row-v2__name">
+                    {h.yadm_nm}
                   </span>
-                )}
-              </div>
-              <div className="name">
-                {h.yadm_nm}
+                  {distLabel && (
+                    <span className="cm-result-row-v2__dist">{distLabel}</span>
+                  )}
+                </div>
                 {locale !== "ko" && (
-                  <span style={{ fontSize: 11.5, color: "var(--cm-text-2)", fontWeight: 500, marginLeft: 6 }}>
-                    ({romanizeYadm(h.yadm_nm)})
-                  </span>
+                  <div className="cm-result-row-v2__en">{romanizeYadm(h.yadm_nm)}</div>
                 )}
-              </div>
-              <div className="spec">
-                {tKind(h.cl_cd_nm ?? "병원", locale)} · {[
-                  tSido(h.sido_cd_nm ?? "", locale),
-                  tSiggu(h.sggu_cd_nm ?? "", locale),
-                  h.emdong_nm && locale !== "ko" ? romanizeAddr(h.emdong_nm) : h.emdong_nm,
-                ].filter(Boolean).join(" ")}
-              </div>
-              <div className="meta">
-                <span style={{ display: "inline-flex", gap: 4, alignItems: "center", fontWeight: 600, color: size.color }}>
-                  <Icon name="shield" size={11} color={size.color} />
-                  {size.label}
-                </span>
-                {h.tel_no && (
-                  <span style={{ display: "inline-flex", gap: 4, alignItems: "center" }}>
-                    <Icon name="phone" size={11} color="var(--cm-text-3)" />
-                    {h.tel_no}
+                <div className="cm-result-row-v2__sub">
+                  {tKind(h.cl_cd_nm ?? "병원", locale)} · {[
+                    tSido(h.sido_cd_nm ?? "", locale),
+                    tSiggu(h.sggu_cd_nm ?? "", locale),
+                    h.emdong_nm && locale !== "ko" ? romanizeAddr(h.emdong_nm) : h.emdong_nm,
+                  ].filter(Boolean).join(" ")}
+                </div>
+                <div className="cm-result-row-v2__chips">
+                  <Badge kind="verified">HIRA</Badge>
+                  <span className="cm-stat-chip" style={{ color: "var(--accent-ink)", background: "var(--accent-soft)" }}>
+                    <Icon name="shield" size={10} color="var(--accent-ink)" />
+                    {size.label}
                   </span>
-                )}
+                </div>
               </div>
-            </div>
-          </Link>
+            </Link>
+            {telDigits && (
+              <a
+                href={`tel:${telDigits}`}
+                className="cm-result-row-v2__call"
+                aria-label={`${h.yadm_nm} 전화`}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Icon name="phone" size={16} color="#fff" />
+              </a>
+            )}
+          </div>
         );
       })}
 
