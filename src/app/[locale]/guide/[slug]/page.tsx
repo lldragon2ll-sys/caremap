@@ -4,6 +4,7 @@ import { Link } from "@/i18n/navigation";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { GUIDES, getGuide } from "@/lib/guides";
 import { tSpecialty } from "@/lib/i18n-dict";
+import { buildPageMeta } from "@/lib/seo";
 
 type Params = Promise<{ locale: string; slug: string }>;
 export const dynamic = "force-static";
@@ -17,13 +18,13 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const g = getGuide(slug);
   if (!g) return { title: "Guide" };
   const lang = locale as "ko" | "en" | "ja" | "zh";
-  return {
+  return buildPageMeta({
+    locale,
+    pathSegment: `/guide/${slug}`,
     title: g.title[lang] ?? g.title.ko,
     description: g.lede[lang] ?? g.lede.ko,
-    alternates: {
-      canonical: locale === "ko" ? `/guide/${slug}` : `/${locale}/guide/${slug}`,
-    },
-  };
+    ogType: "article",
+  });
 }
 
 function pickLocaleStr(o: { ko: string; en: string; ja: string; zh: string }, lang: "ko" | "en" | "ja" | "zh"): string {

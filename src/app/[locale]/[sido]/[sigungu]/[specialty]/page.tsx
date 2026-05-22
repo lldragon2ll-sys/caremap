@@ -6,6 +6,7 @@ import { HospitalCard } from "@/components/HospitalCard";
 import { Pagination } from "@/components/Pagination";
 import { SpecialtyIcon, accentFor } from "@/components/SpecialtyIcon";
 import { tSido, tSiggu, tSpecialty, pick4 } from "@/lib/i18n-dict";
+import { buildPageMeta } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
@@ -35,7 +36,9 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const sidoD = tSido(sidoNm, locale);
   const sigguD = tSiggu(sigguNm, locale);
   const spD = tSpecialty(sp, locale);
-  return {
+  return buildPageMeta({
+    locale,
+    pathSegment: `/${encodeURIComponent(sidoNm)}/${encodeURIComponent(sigguNm)}/${encodeURIComponent(sp)}`,
     title: pick4(locale,
       `${sidoNm} ${sigguNm} ${sp} 추천 병원 - 진료시간·위치`,
       `${spD} Clinics in ${sigguD} — Hours, Location & Phone`,
@@ -48,12 +51,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
       `${sidoD} ${sigguD}の${spD}クリニックリスト。位置・電話・診療時間を確認できます。`,
       `查找${sidoD} ${sigguD}的${spD}诊所。查看位置、电话和营业时间。`,
     ),
-    alternates: {
-      canonical: locale === "ko"
-        ? `/${encodeURIComponent(sidoNm)}/${encodeURIComponent(sigguNm)}/${encodeURIComponent(sp)}`
-        : `/${locale}/${encodeURIComponent(sidoNm)}/${encodeURIComponent(sigguNm)}/${encodeURIComponent(sp)}`,
-    },
-  };
+  });
 }
 
 function buildFaqKo(sido: string, sggu: string, sp: string) {
@@ -180,6 +178,21 @@ export default async function SpecialtyPage({ params, searchParams }: { params: 
   const pillsKo = [sp, "전문의 진료", "주차 가능", "야간 진료", "주말 진료", "초진 가능", "예방 진료", "건강검진"];
   const pills = locale === "en" ? pillsEn : locale === "ja" ? pillsJa : locale === "zh" ? pillsZh : pillsKo;
 
+  // ItemList JSON-LD — 현재 페이지에 노출된 병원 리스트
+  const prefix = locale === "ko" ? "" : `/${locale}`;
+  const itemListLd = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: `${sigguD} ${spD}`,
+    numberOfItems: rows.length,
+    itemListElement: rows.slice(0, 30).map((h, idx) => ({
+      "@type": "ListItem",
+      position: idx + 1,
+      url: `${siteUrl}${prefix}/hospital/${encodeURIComponent(h.slug)}`,
+      name: h.yadm_nm,
+    })),
+  };
+
   return (
     <>
       <script
@@ -190,6 +203,12 @@ export default async function SpecialtyPage({ params, searchParams }: { params: 
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(buildBreadcrumbLD(locale, sidoNm, sigguNm, sp, siteUrl)) }}
       />
+      {rows.length > 0 && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListLd) }}
+        />
+      )}
 
       <section className="cm-cat-hero">
         <nav className="crumbs">

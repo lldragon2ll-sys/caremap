@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { setRequestLocale } from "next-intl/server";
 import { pick4 } from "@/lib/i18n-dict";
 import { RegisterForm } from "@/components/RegisterForm";
+import { buildPageMeta } from "@/lib/seo";
 
 type Params = Promise<{ locale: string }>;
 
@@ -9,21 +10,17 @@ export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { locale } = await params;
-  return {
-    title: pick4(locale,
-      "병원 등록 신청",
-      "Register Your Clinic",
-      "クリニック登録申請",
-      "诊所登记申请",
-    ),
+  return buildPageMeta({
+    locale,
+    pathSegment: "/register",
+    title: pick4(locale, "병원 등록 신청", "Register Your Clinic", "クリニック登録申請", "诊所登记申请"),
     description: pick4(locale,
       "CAREMAP에 병원 정보 정정·등록을 신청하세요.",
       "Request to list or correct your clinic on CAREMAP.",
       "CAREMAPにクリニック情報の登録・訂正を申請。",
       "在CAREMAP申请诊所信息登记或更正。",
     ),
-    robots: { index: true, follow: true },
-  };
+  });
 }
 
 export default async function RegisterPage({ params }: { params: Params }) {

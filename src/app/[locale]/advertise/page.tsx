@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { setRequestLocale } from "next-intl/server";
 import { pick4 } from "@/lib/i18n-dict";
 import { RegisterForm } from "@/components/RegisterForm";
+import { buildPageMeta } from "@/lib/seo";
 
 type Params = Promise<{ locale: string }>;
 
@@ -9,15 +10,17 @@ export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { locale } = await params;
-  return {
-    title: pick4(locale,
-      "광고·제휴 안내",
-      "Advertise on CAREMAP",
-      "広告・提携のご案内",
-      "广告·合作介绍",
+  return buildPageMeta({
+    locale,
+    pathSegment: "/advertise",
+    title: pick4(locale, "광고·제휴 안내", "Advertise on CAREMAP", "広告・提携のご案内", "广告·合作介绍"),
+    description: pick4(locale,
+      "CAREMAP에서 광고·제휴를 시작하세요. 월 수만 명 트래픽, 한·영·일·중 4개 언어 동시 노출.",
+      "Start advertising on CAREMAP — tens of thousands of monthly users, 4-language exposure.",
+      "CAREMAPで広告・提携を開始。月数万人のトラフィック、4か国語同時露出。",
+      "在CAREMAP开始广告·合作。每月数万流量,4种语言同步展示。",
     ),
-    robots: { index: true, follow: true },
-  };
+  });
 }
 
 export default async function AdvertisePage({ params }: { params: Params }) {

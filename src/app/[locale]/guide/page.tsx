@@ -4,12 +4,15 @@ import { setRequestLocale } from "next-intl/server";
 import { GUIDES } from "@/lib/guides";
 import { REGION_GUIDES } from "@/lib/region-guides";
 import { pick4 } from "@/lib/i18n-dict";
+import { buildPageMeta, SITE_URL } from "@/lib/seo";
 
 type Params = Promise<{ locale: string }>;
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { locale } = await params;
-  return {
+  return buildPageMeta({
+    locale,
+    pathSegment: "/guide",
     title: pick4(locale, "진료과 가이드", "Specialty Guides", "診療科ガイド", "科室指南"),
     description: pick4(locale,
       "한국 비급여·미용 의료 진료과별 가이드. 시술 종류·비용·클리닉 선택법.",
@@ -17,7 +20,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
       "韓国の自由診療・美容医療診療科ガイド。施術・費用・クリニック選び。",
       "韩国自费·美容医疗科室指南。术式·费用·诊所选择。",
     ),
-  };
+  });
 }
 
 export default async function GuideIndex({ params }: { params: Params }) {

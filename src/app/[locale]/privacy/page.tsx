@@ -1,16 +1,23 @@
 import type { Metadata } from "next";
 import { setRequestLocale, getLocale } from "next-intl/server";
+import { buildPageMeta } from "@/lib/seo";
+import { pick4 } from "@/lib/i18n-dict";
 
 type Params = Promise<{ locale: string }>;
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { locale } = await params;
-  return {
-    title: locale === "en" ? "Privacy Policy"
-      : locale === "ja" ? "プライバシーポリシー"
-      : locale === "zh" ? "隐私政策"
-      : "개인정보처리방침",
-  };
+  return buildPageMeta({
+    locale,
+    pathSegment: "/privacy",
+    title: pick4(locale, "개인정보처리방침", "Privacy Policy", "プライバシーポリシー", "隐私政策"),
+    description: pick4(locale,
+      "CAREMAP 개인정보처리방침. 수집·이용·보관·파기·이용자 권리 안내.",
+      "CAREMAP privacy policy: collection, use, retention, deletion, and user rights.",
+      "CAREMAP プライバシーポリシー。収集・利用・保管・破棄・ユーザー権利の案内。",
+      "CAREMAP 隐私政策。收集·使用·保留·删除·用户权利说明。",
+    ),
+  });
 }
 
 export default async function PrivacyPage({ params }: { params: Params }) {

@@ -4,6 +4,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { getSidoList, getSigguList, getHospitalsByRegion } from "@/lib/db";
 import { HospitalCard } from "@/components/HospitalCard";
 import { tSido, tSiggu, pick4 } from "@/lib/i18n-dict";
+import { buildPageMeta } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
@@ -13,7 +14,9 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const { locale, sido } = await params;
   const decoded = decodeURIComponent(sido);
   const sidoDisplay = tSido(decoded, locale);
-  return {
+  return buildPageMeta({
+    locale,
+    pathSegment: `/${encodeURIComponent(decoded)}`,
     title: pick4(locale,
       `${decoded} 병원 찾기 - 진료과·시군구별 검색`,
       `Clinics in ${sidoDisplay} — Search by District & Specialty`,
@@ -26,12 +29,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
       `${sidoDisplay}地域のクリニック・歯科・韓医院を区別に検索。`,
       `按区搜索${sidoDisplay}的诊所、牙科、韩医院。`,
     ),
-    alternates: {
-      canonical: locale === "ko"
-        ? `/${encodeURIComponent(decoded)}`
-        : `/${locale}/${encodeURIComponent(decoded)}`,
-    },
-  };
+  });
 }
 
 export default async function SidoPage({ params }: { params: Params }) {

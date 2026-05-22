@@ -1,16 +1,23 @@
 import type { Metadata } from "next";
 import { setRequestLocale, getLocale } from "next-intl/server";
+import { buildPageMeta } from "@/lib/seo";
+import { pick4 } from "@/lib/i18n-dict";
 
 type Params = Promise<{ locale: string }>;
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { locale } = await params;
-  return {
-    title: locale === "en" ? "Terms of Service"
-      : locale === "ja" ? "利用規約"
-      : locale === "zh" ? "服务条款"
-      : "이용약관",
-  };
+  return buildPageMeta({
+    locale,
+    pathSegment: "/terms",
+    title: pick4(locale, "이용약관", "Terms of Service", "利用規約", "服务条款"),
+    description: pick4(locale,
+      "CAREMAP 이용약관. 서비스 성격, 데이터 출처(HIRA), 의료광고 정책, 책임 한계.",
+      "CAREMAP terms of service: service nature, data source (HIRA), medical advertising policy, liability.",
+      "CAREMAP 利用規約。サービスの性質、データソース(HIRA)、医療広告ポリシー、責任限定。",
+      "CAREMAP 服务条款。服务性质、数据来源(HIRA)、医疗广告政策、责任限制。",
+    ),
+  });
 }
 
 export default async function TermsPage({ params }: { params: Params }) {

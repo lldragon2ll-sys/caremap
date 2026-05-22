@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Link } from "@/i18n/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { getSidoList, getTopSearches, getTopViewedHospitals } from "@/lib/db";
@@ -8,9 +9,21 @@ import { Icon } from "@/components/Icon";
 import { SearchAutocomplete } from "@/components/SearchAutocomplete";
 import { NearbyCTA } from "@/components/NearbyCTA";
 import { tSido, tSiggu, tSpecialty, tKind, pick4 } from "@/lib/i18n-dict";
+import { buildPageMeta } from "@/lib/seo";
 import type { Hospital } from "@/lib/types";
 
 export const revalidate = 3600;
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "site" });
+  return buildPageMeta({
+    locale,
+    pathSegment: "/",
+    title: `${t("name")} — ${t("tagline")}`,
+    description: t("description"),
+  });
+}
 
 // 비급여·미용 진료 위주 (영문 라벨은 i18n-dict에서 매핑)
 const SPECIALTIES: { code: string; ko: string }[] = [

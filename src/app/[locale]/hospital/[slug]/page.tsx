@@ -12,6 +12,7 @@ import { SaveButton } from "@/components/SaveButton";
 import { ShareButton } from "@/components/ShareButton";
 import { mapDeepLinks, sizeCategory } from "@/lib/hospital-util";
 import { tKind, tSido, tSiggu, pick4 } from "@/lib/i18n-dict";
+import { buildPageMeta } from "@/lib/seo";
 import { generateDescription } from "@/lib/hospital-description";
 import { romanizeYadm, romanizeAddr } from "@/lib/romanize";
 import type { Hospital } from "@/lib/types";
@@ -55,20 +56,15 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
     tel: h.tel_no ?? "-",
     drCount: h.dr_tot_cnt,
   });
-  return {
+  // 병원별 동적 OG 이미지 (locale prefix 포함)
+  const ogPath = `${locale === "ko" ? "" : `/${locale}`}/hospital/${encodeURIComponent(h.slug)}/opengraph-image`;
+  return buildPageMeta({
+    locale,
+    pathSegment: `/hospital/${encodeURIComponent(h.slug)}`,
     title,
     description: desc,
-    alternates: {
-      canonical: locale === "ko"
-        ? `/hospital/${encodeURIComponent(h.slug)}`
-        : `/${locale}/hospital/${encodeURIComponent(h.slug)}`,
-    },
-    openGraph: {
-      title: `${h.yadm_nm} | ${SITE_NAME}`,
-      description: desc,
-      type: "website",
-    },
-  };
+    ogImage: ogPath,
+  });
 }
 
 function formatDate(s: string | null, locale: string): string | null {
@@ -84,8 +80,8 @@ function formatDate(s: string | null, locale: string): string | null {
 function buildHospitalLD(h: Hospital, siteUrl: string, locale: string): Record<string, unknown> {
   const prefix = locale === "ko" ? "" : `/${locale}`;
   const isDental = h.cl_cd_nm?.includes("치과");
-  const isPharmacy = false;
-  const type = isDental ? "Dentist" : isPharmacy ? "Pharmacy" : "Hospital";
+  const isClinic = h.cl_cd_nm === "의원" || h.cl_cd_nm === "한의원";
+  const type = isDental ? "Dentist" : isClinic ? "MedicalClinic" : "Hospital";
   const ld: Record<string, unknown> = {
     "@context": "https://schema.org",
     "@type": type,

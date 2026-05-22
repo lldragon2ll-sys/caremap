@@ -1,20 +1,24 @@
 import type { Metadata } from "next";
 import { getLocale } from "next-intl/server";
 import { setRequestLocale } from "next-intl/server";
+import { buildPageMeta } from "@/lib/seo";
+import { pick4 } from "@/lib/i18n-dict";
 
 type Params = Promise<{ locale: string }>;
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { locale } = await params;
-  return {
-    title: locale === "en" ? "About CAREMAP"
-      : locale === "ja" ? "CAREMAP について"
-      : locale === "zh" ? "关于 CAREMAP"
-      : "CAREMAP 소개",
-    description: locale === "en"
-      ? "CAREMAP is a directory of Korea's cosmetic & out-of-pocket medical clinics, operated by Team Performance Inc."
-      : "CAREMAP은 주식회사 팀퍼포먼스가 운영하는 한국 비급여·미용 의료 디렉토리입니다.",
-  };
+  return buildPageMeta({
+    locale,
+    pathSegment: "/about",
+    title: pick4(locale, "CAREMAP 소개", "About CAREMAP", "CAREMAP について", "关于 CAREMAP"),
+    description: pick4(locale,
+      "CAREMAP은 주식회사 팀퍼포먼스가 운영하는 한국 비급여·미용 의료 디렉토리입니다. 8만개 의료기관 정보를 4개 언어로 제공.",
+      "CAREMAP is a directory of Korea's cosmetic & out-of-pocket medical clinics, operated by Team Performance Inc. 80,000+ institutions in 4 languages.",
+      "CAREMAPは株式会社チームパフォーマンスが運営する韓国の自由診療・美容医療ディレクトリ。8万件の医療機関情報を4か国語で提供。",
+      "CAREMAP是团绩效股份有限公司运营的韩国自费·美容医疗目录。提供8万家医疗机构信息,支持4种语言。",
+    ),
+  });
 }
 
 export default async function AboutPage({ params }: { params: Params }) {

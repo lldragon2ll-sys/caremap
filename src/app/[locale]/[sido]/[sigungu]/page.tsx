@@ -5,6 +5,7 @@ import { getHospitalsByRegion } from "@/lib/db";
 import { HospitalCard } from "@/components/HospitalCard";
 import { Pagination } from "@/components/Pagination";
 import { tSido, tSiggu, tSpecialty, pick4 } from "@/lib/i18n-dict";
+import { buildPageMeta } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
@@ -23,7 +24,9 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const sigguNm = decodeURIComponent(sigungu);
   const sidoDisplay = tSido(sidoNm, locale);
   const sigguDisplay = tSiggu(sigguNm, locale);
-  return {
+  return buildPageMeta({
+    locale,
+    pathSegment: `/${encodeURIComponent(sidoNm)}/${encodeURIComponent(sigguNm)}`,
     title: pick4(locale,
       `${sidoNm} ${sigguNm} 병원 - 진료과목별 검색`,
       `Clinics in ${sidoDisplay} ${sigguDisplay} — Search by Specialty`,
@@ -36,12 +39,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
       `${sidoDisplay} ${sigguDisplay}地域のクリニック・歯科・韓医院を診療科別に検索。`,
       `按科室搜索${sidoDisplay} ${sigguDisplay}的诊所、牙科、韩医院。`,
     ),
-    alternates: {
-      canonical: locale === "ko"
-        ? `/${encodeURIComponent(sidoNm)}/${encodeURIComponent(sigguNm)}`
-        : `/${locale}/${encodeURIComponent(sidoNm)}/${encodeURIComponent(sigguNm)}`,
-    },
-  };
+  });
 }
 
 export default async function SigunguPage({ params, searchParams }: { params: Params; searchParams: SearchParams }) {
