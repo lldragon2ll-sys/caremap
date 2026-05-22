@@ -1,0 +1,10 @@
+{
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "has": [{ "type": "host", "value": "caremap.store" }],
+      "destination": "https://www.caremap.store/$1",
+      "permanent": true
+    }
+  ]
+}
