@@ -173,7 +173,7 @@ export default async function Home({
             {t("popularLabel")}:
           </span>
           {["성형외과", "피부과", "치과", "안과", "한의원"].map((c) => (
-            <Link key={c} href={`/search?q=${encodeURIComponent(searchKey(c))}`} className="cm-chip">
+            <Link key={c} href={`/s/${encodeURIComponent(c)}`} className="cm-chip">
               {tSpecialty(c, locale)}
             </Link>
           ))}
@@ -203,7 +203,7 @@ export default async function Home({
               key={s.ko}
               code={s.code}
               name={tSpecialty(s.ko, locale)}
-              href={`/search?q=${encodeURIComponent(searchKey(s.ko))}`}
+              href={`/s/${encodeURIComponent(s.ko)}`}
             />
           ))}
         </div>

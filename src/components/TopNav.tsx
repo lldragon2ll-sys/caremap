@@ -29,13 +29,14 @@ export function TopNav() {
   }, [langOpen]);
 
   const guideLabel = locale === "en" ? "Guides" : locale === "ja" ? "ガイド" : locale === "zh" ? "指南" : "가이드";
+  // 카테고리 URL로 정규화 — /search?q=*는 noindex이므로 시그널이 모이지 않음
   const NAV_ITEMS = [
     { href: "/", label: t("home") },
-    { href: "/search", label: t("search") },
-    { href: `/search?q=${encodeURIComponent(tSpecialty("성형외과", locale))}`, label: t("plasticSurgery") },
-    { href: `/search?q=${encodeURIComponent(tSpecialty("피부과", locale))}`, label: t("dermatology") },
-    { href: `/search?q=${encodeURIComponent(tSpecialty("치과", locale))}`, label: t("dental") },
+    { href: "/s/성형외과", label: t("plasticSurgery") },
+    { href: "/s/피부과", label: t("dermatology") },
+    { href: "/s/치과", label: t("dental") },
     { href: "/guide", label: guideLabel },
+    { href: "/search", label: t("search") },
   ];
 
   // next-intl router.replace로 명시적 locale 전환 (cookie/Accept-Language 우회)

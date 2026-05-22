@@ -10,12 +10,13 @@ export async function Footer() {
   const tSite = await getTranslations("site");
   const tNav = await getTranslations("nav");
 
-  // 검색 chips — 4개 언어 자동 변환 (i18n-dict)
+  // 카테고리 URL로 직접 연결 — /search?q=*는 noindex이므로 시그널 분산 방지
+  // ko 슬러그 그대로 사용 (DB가 한국어 데이터)
   const specialtyKeys = ["성형외과", "피부과", "치과", "안과", "한의원"];
-  const specialties = specialtyKeys.map((ko) => {
-    const label = tSpecialty(ko, locale);
-    return { q: label, label };
-  });
+  const specialties = specialtyKeys.map((ko) => ({
+    href: `/s/${encodeURIComponent(ko)}`,
+    label: tSpecialty(ko, locale),
+  }));
 
   return (
     <footer className="cm-footer">
@@ -54,8 +55,8 @@ export async function Footer() {
           <h6>{t("topSpecialties")}</h6>
           <ul>
             {specialties.map((s) => (
-              <li key={s.q}>
-                <Link href={`/search?q=${encodeURIComponent(s.q)}`}>{s.label}</Link>
+              <li key={s.href}>
+                <Link href={s.href}>{s.label}</Link>
               </li>
             ))}
           </ul>
