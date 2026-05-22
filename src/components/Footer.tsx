@@ -79,6 +79,12 @@ export async function Footer() {
           © {new Date().getFullYear()} {tSite("operator")}. {tSite("dataSource")}
         </span>
         <span>{tSite("legal")}</span>
+        <span style={{ display: "block", marginTop: 6, fontSize: 11.5, color: "var(--cm-text-3)" }}>
+          {locale === "en" ? "Informational service only. This is not medical advertising."
+            : locale === "ja" ? "情報提供サービス。医療広告ではありません。"
+            : locale === "zh" ? "信息提供服务。非医疗广告。"
+            : "정보 제공 서비스. 의료 광고가 아닙니다."}
+        </span>
       </div>
     </footer>
   );

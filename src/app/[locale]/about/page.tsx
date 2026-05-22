@@ -101,6 +101,64 @@ export default async function AboutPage({ params }: { params: Params }) {
           </p>
         </section>
       ))}
+
+      {/* 법적·의료법 컴플라이언스 (의료법 제56조) */}
+      <section style={{
+        marginTop: 32, padding: "20px 24px",
+        background: "var(--cm-surface)", borderRadius: 12,
+        border: "1px solid var(--cm-line)",
+      }}>
+        <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 10 }}>
+          {lang === "en" ? "Legal & Compliance" : lang === "ja" ? "法的事項" : lang === "zh" ? "法律与合规" : "법적 고지·컴플라이언스"}
+        </h2>
+        <dl style={{ fontSize: 13.5, color: "var(--cm-text)", lineHeight: 1.65, margin: 0 }}>
+          <dt style={{ fontWeight: 700, marginTop: 8 }}>
+            {lang === "en" ? "Operator" : lang === "ja" ? "運営者" : lang === "zh" ? "运营商" : "운영사"}
+          </dt>
+          <dd style={{ margin: "2px 0 6px" }}>
+            {lang === "en" ? "Team Performance Inc." : lang === "ja" ? "株式会社チームパフォーマンス" : lang === "zh" ? "团绩效股份有限公司" : "주식회사 팀퍼포먼스"}
+          </dd>
+
+          <dt style={{ fontWeight: 700, marginTop: 8 }}>
+            {lang === "en" ? "Service nature" : lang === "ja" ? "サービス性質" : lang === "zh" ? "服务性质" : "서비스 성격"}
+          </dt>
+          <dd style={{ margin: "2px 0 6px" }}>
+            {lang === "en"
+              ? "Informational directory based on Korea's HIRA public data. This is NOT a medical advertising service per Article 56 of the Korean Medical Service Act."
+              : lang === "ja"
+                ? "韓国HIRA公共データに基づく情報提供ディレクトリ。韓国医療法第56条の医療広告サービスではありません。"
+                : lang === "zh"
+                  ? "基于韩国HIRA公共数据的信息目录。非韩国医疗法第56条规定的医疗广告服务。"
+                  : "건강보험심사평가원(HIRA) 공공데이터 기반의 정보 제공 디렉토리. 의료법 제56조에 따른 의료광고 송출 서비스가 아닙니다."}
+          </dd>
+
+          <dt style={{ fontWeight: 700, marginTop: 8 }}>
+            {lang === "en" ? "Data source" : lang === "ja" ? "データソース" : lang === "zh" ? "数据来源" : "데이터 출처"}
+          </dt>
+          <dd style={{ margin: "2px 0 6px" }}>
+            {lang === "en"
+              ? "Health Insurance Review & Assessment Service (HIRA) public data portal. Updated periodically."
+              : lang === "ja"
+                ? "韓国健康保険審査評価院(HIRA)公共データポータル。定期的に更新。"
+                : lang === "zh"
+                  ? "韩国健康保险审查评估院(HIRA)公共数据门户。定期更新。"
+                  : "건강보험심사평가원(HIRA) 공공데이터포털. 정기적으로 갱신됩니다."}
+          </dd>
+
+          <dt style={{ fontWeight: 700, marginTop: 8 }}>
+            {lang === "en" ? "Advertising disclosure" : lang === "ja" ? "広告開示" : lang === "zh" ? "广告披露" : "광고 표기"}
+          </dt>
+          <dd style={{ margin: "2px 0 6px" }}>
+            {lang === "en"
+              ? "Should any sponsored medical advertising be displayed, prior review per Article 56 of the Medical Service Act and an '광고' (Ad) badge will be required."
+              : lang === "ja"
+                ? "医療広告が掲載される場合、医療法第56条の事前審議および「広告」表記を必ず実施します。"
+                : lang === "zh"
+                  ? "如发布医疗广告,将依据医疗法第56条进行事前审议并标注「广告」。"
+                  : "의료광고가 게재되는 경우 의료법 제56조에 따른 사전심의 통과와 '광고' 표기가 의무화됩니다."}
+          </dd>
+        </dl>
+      </section>
     </div>
   );
 }

@@ -123,7 +123,7 @@ export function HospitalLogo({ h, size = 48, className, shape = "rounded" }: Pro
       {showImg && (
         <img
           src={url}
-          alt={`${h.yadm_nm} 로고`}
+          alt=""
           width={size}
           height={size}
           loading="lazy"
