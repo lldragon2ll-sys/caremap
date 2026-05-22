@@ -239,6 +239,120 @@ export async function getRelatedHospitals(h: Hospital, limit = 4): Promise<Hospi
   return rows.slice(0, limit);
 }
 
+/**
+ * 같은 동(洞) 내 다른 진료과 병원 — 키워드 기반 다양성 확보.
+ * 기준 병원과 다른 진료과 위주로 5곳 추천. emdong_nm이 비면 시군구 fallback.
+ */
+export async function getSameDongHospitals(h: Hospital, limit = 5): Promise<Hospital[]> {
+  if (!h.sido_cd_nm || !h.sggu_cd_nm) return [];
+  const baseKeyword = ["성형", "피부", "치과", "안과", "한의", "정형", "산부인", "소아", "내과", "이비인후"]
+    .find((k) => (h.yadm_nm ?? "").includes(k));
+
+  // 동(洞) 기준 우선, 부족하면 시군구로 확장
+  const queryByDong = h.emdong_nm
+    ? supabase
+        .from("hospitals")
+        .select("*")
+        .eq("sido_cd_nm", h.sido_cd_nm)
+        .eq("sggu_cd_nm", h.sggu_cd_nm)
+        .eq("emdong_nm", h.emdong_nm)
+        .neq("id", h.id)
+        .order("dr_tot_cnt", { ascending: false })
+        .limit(50)
+    : null;
+
+  let pool: Hospital[] = [];
+  if (queryByDong) {
+    const { data } = await queryByDong;
+    pool = (data ?? []) as Hospital[];
+  }
+  // 다른 진료과만 (이름에 baseKeyword가 없는 것)
+  let others = baseKeyword
+    ? pool.filter((r) => !r.yadm_nm.includes(baseKeyword))
+    : pool;
+
+  if (others.length < limit) {
+    // 시군구로 확장
+    const { data } = await supabase
+      .from("hospitals")
+      .select("*")
+      .eq("sido_cd_nm", h.sido_cd_nm)
+      .eq("sggu_cd_nm", h.sggu_cd_nm)
+      .neq("id", h.id)
+      .order("dr_tot_cnt", { ascending: false })
+      .limit(60);
+    const extra = ((data ?? []) as Hospital[])
+      .filter((r) => !others.find((o) => o.id === r.id))
+      .filter((r) => !baseKeyword || !r.yadm_nm.includes(baseKeyword));
+    others = [...others, ...extra];
+  }
+
+  // 진료과 다양성: 종별/이름 키워드별 1개씩 우선
+  const seenKeywords = new Set<string>();
+  const KEYWORDS = ["성형", "피부", "치과", "안과", "한의", "정형", "산부인", "소아", "내과", "이비인후", "비뇨", "정신", "가정의"];
+  const diverse: Hospital[] = [];
+  for (const r of others) {
+    const k = KEYWORDS.find((kw) => r.yadm_nm.includes(kw)) ?? r.cl_cd_nm ?? "기타";
+    if (!seenKeywords.has(k)) {
+      diverse.push(r);
+      seenKeywords.add(k);
+      if (diverse.length >= limit) break;
+    }
+  }
+  // 부족하면 나머지로 채움
+  if (diverse.length < limit) {
+    for (const r of others) {
+      if (diverse.find((d) => d.id === r.id)) continue;
+      diverse.push(r);
+      if (diverse.length >= limit) break;
+    }
+  }
+  return diverse.slice(0, limit);
+}
+
+/**
+ * 반경 ~500m 인근 동일 진료과 병원 (Haversine).
+ * 좌표 있는 같은 시군구 병원만 대상으로 거리 필터 + 정렬.
+ */
+export async function getNearbySameSpecialty(h: Hospital, limit = 5, maxKm = 1.0): Promise<Array<Hospital & { distance: number }>> {
+  if (h.x_pos == null || h.y_pos == null || !h.sggu_cd_nm) return [];
+  const baseKeyword = ["성형", "피부", "치과", "안과", "한의", "정형", "산부인", "소아", "내과", "이비인후"]
+    .find((k) => (h.yadm_nm ?? "").includes(k));
+
+  // 같은 시군구·좌표 있는 후보 100개 가져오기
+  let q = supabase
+    .from("hospitals")
+    .select("*")
+    .eq("sido_cd_nm", h.sido_cd_nm ?? "")
+    .eq("sggu_cd_nm", h.sggu_cd_nm)
+    .neq("id", h.id)
+    .not("x_pos", "is", null)
+    .not("y_pos", "is", null)
+    .limit(100);
+  if (baseKeyword) q = q.ilike("yadm_nm", `%${baseKeyword}%`);
+  else if (h.cl_cd_nm) q = q.eq("cl_cd_nm", h.cl_cd_nm);
+
+  const { data } = await q;
+  if (!data) return [];
+
+  const R = 6371; // km
+  const toRad = (x: number) => (x * Math.PI) / 180;
+  const candidates = (data as Hospital[])
+    .map((r) => {
+      if (r.x_pos == null || r.y_pos == null) return null;
+      const dLat = toRad(r.y_pos - h.y_pos!);
+      const dLng = toRad(r.x_pos - h.x_pos!);
+      const a = Math.sin(dLat / 2) ** 2 +
+        Math.cos(toRad(h.y_pos!)) * Math.cos(toRad(r.y_pos)) * Math.sin(dLng / 2) ** 2;
+      const distance = 2 * R * Math.asin(Math.sqrt(a));
+      return { ...r, distance };
+    })
+    .filter((x): x is Hospital & { distance: number } => x !== null && x.distance <= maxKm)
+    .sort((a, b) => a.distance - b.distance);
+
+  return candidates.slice(0, limit);
+}
+
 export async function searchHospitals(
   q: string,
   limit = 30,

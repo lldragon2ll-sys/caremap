@@ -246,6 +246,55 @@ export const GUIDES: GuideContent[] = [
   },
 ];
 
+/** 모든 가이드에 공통으로 붙는 추가 섹션 (방문 전 체크리스트 + 예산 계획 + 의료법 안내) */
+const COMMON_SECTIONS: GuideContent["sections"] = [
+  {
+    heading: {
+      ko: "방문 전 사전 체크리스트",
+      en: "Pre-visit Checklist",
+      ja: "受診前のチェックリスト",
+      zh: "就诊前清单",
+    },
+    body: {
+      ko: "(1) 의료법 제56조 광고 사전심의 번호 확인 (2) 상담의와 집도의가 같은지 확인 (3) 마취과 전문의 상주 여부 (4) 시술 후 부작용·재수술 정책 명문화 여부 (5) 외국인 환자 등록 의료기관 인증 여부 (6) 통역 서비스 제공 언어 (7) 예약·취소·환불 정책 서면 확인 (8) 의료비 영수증 및 진단서 발급 가능 여부. 이 8가지를 전화 또는 첫 상담 시 반드시 확인하시기 바랍니다. CAREMAP은 HIRA(건강보험심사평가원) 공공데이터로 인증된 의료기관만 노출합니다.",
+      en: "(1) Verify the medical advertising review number per Article 56 of the Korean Medical Service Act. (2) Confirm the consulting physician is the same as the surgeon. (3) Check that a board-certified anesthesiologist is on-site. (4) Get the side-effect / revision policy in writing. (5) Confirm the clinic is registered to serve foreign patients. (6) Ask which languages interpreters are available in. (7) Get the booking, cancellation, and refund policy in writing. (8) Confirm medical receipts and diagnostic certificates are available. Check all eight points by phone or at the first consultation. CAREMAP only lists clinics verified through Korea's HIRA public dataset.",
+      ja: "(1)医療法第56条審議番号の確認 (2)カウンセリング医と執刀医が同一か (3)麻酔科専門医の常駐 (4)副作用・修正手術ポリシーの書面化 (5)外国人患者登録医療機関の認証 (6)通訳サービスの対応言語 (7)予約・キャンセル・返金ポリシーの書面確認 (8)医療費領収書・診断書の発行可否。以上8項目をお電話または初回カウンセリング時に必ずご確認ください。CAREMAPはHIRA(韓国公共データ)で認証された医療機関のみ掲載します。",
+      zh: "(1)确认医疗法第56条审议号 (2)咨询医师与执刀医师是否一致 (3)是否有麻醉科专科医师驻诊 (4)书面确认副作用·修复手术政策 (5)外国患者登记医疗机构认证 (6)翻译服务支持的语言 (7)书面确认预约·取消·退款政策 (8)能否开具医疗费收据与诊断书。请通过电话或首次咨询时必须确认以上8项。CAREMAP仅展示通过韩国HIRA公共数据认证的医疗机构。",
+    },
+  },
+  {
+    heading: {
+      ko: "예산 계획 가이드",
+      en: "Budgeting Tips",
+      ja: "予算計画ガイド",
+      zh: "预算规划指南",
+    },
+    body: {
+      ko: "비급여 시술은 의료기관별 가격 차이가 큽니다. 총 비용은 [시술비 + 마취비 + 입원비 + 검사비 + 회복실 사용료]로 구성되며, 견적서에 모두 명시되어야 합니다. 항공·숙박·통역을 포함한 의료관광 패키지의 경우 시술비의 1.3~1.5배 정도가 일반적인 총 예산입니다. 사후관리(드레싱·실밥 제거 등) 비용 포함 여부도 사전 확인이 필수입니다. 한국은 의료비 카드 분납이 보편적이며, 다수 의료기관에서 외화 결제(USD/JPY/CNY)를 지원합니다.",
+      en: "Out-of-pocket procedure prices vary significantly between clinics. Total cost typically breaks down as [procedure + anesthesia + admission + lab + recovery room]; all should be itemized on the estimate. For medical tourism packages including flight, lodging, and interpretation, total budget is typically 1.3–1.5× the procedure cost. Confirm whether follow-up care (dressing, suture removal) is included. Korean clinics commonly offer installment payment and foreign currency (USD / JPY / CNY) payment is widely supported.",
+      ja: "自由診療は医療機関ごとに価格差が大きいです。総費用は[施術料+麻酔料+入院料+検査料+回復室使用料]で構成され、見積書に明記される必要があります。航空・宿泊・通訳を含む医療観光パッケージの場合、施術費の1.3〜1.5倍が一般的な総予算です。アフターケア(包帯交換・抜糸など)費用の含有有無も事前確認必須。韓国はカード分割払いが一般的で、多数の医療機関が外貨決済(USD/JPY/CNY)をサポートします。",
+      zh: "自费项目各诊所价格差异较大。总费用通常包括[手术费+麻醉费+住院费+检查费+恢复室使用费],均应在报价单中详细列出。如包含机票、住宿、翻译的医疗旅游套餐,总预算通常为手术费的1.3–1.5倍。请事先确认术后护理(换药、拆线等)是否包含。韩国诊所普遍支持信用卡分期付款,多数医院支持外币(USD/JPY/CNY)结算。",
+    },
+  },
+  {
+    heading: {
+      ko: "한국 의료시스템 안내",
+      en: "Understanding the Korean Medical System",
+      ja: "韓国の医療システム",
+      zh: "韩国医疗体系介绍",
+    },
+    body: {
+      ko: "한국 의료기관은 [의원(1차) — 병원(2차) — 종합병원·상급종합(3차)]의 3단계로 분류됩니다. 비급여 미용·성형 시술은 주로 의원급에서 이루어지며, 상급종합병원은 중증 질환 위주입니다. 모든 의료기관은 의료법에 따라 면허 등록 후 운영되며, 시술 사진·광고는 의료법 제56조에 따른 사전심의 통과가 의무입니다. 외국인 환자는 의료비자(C-3-3)로 단기 체류 가능하며, 90일 이상은 의료관광비자(C-3-3 또는 G-1) 발급 가능. 한국의 외국인 환자 등록 의료기관은 보건복지부에서 인증을 관리합니다.",
+      en: "Korean medical institutions are classified into 3 tiers: clinics (primary care), hospitals (secondary), and general / tertiary hospitals (advanced care). Out-of-pocket cosmetic and plastic surgery is mostly done at primary clinics, while tertiary hospitals focus on serious illness. All institutions operate under Korean Medical Service Act licensing, and any procedure photos or advertising require advance review under Article 56. Foreign patients may stay short-term on a medical visa (C-3-3); stays over 90 days require a medical tourism visa. Foreign-patient-registered institutions are certified by Korea's Ministry of Health and Welfare.",
+      ja: "韓国の医療機関は[クリニック(1次)—病院(2次)—総合病院・上級総合(3次)]の3階層に分類されます。自由診療の美容・整形施術は主にクリニックで行われ、上級総合病院は重症疾患中心です。すべての医療機関は医療法に基づき免許登録後運営され、施術写真・広告は医療法第56条による事前審議通過が義務です。外国人患者は医療ビザ(C-3-3)で短期滞在可能、90日以上は医療観光ビザ発給可能。韓国の外国人患者登録医療機関は保健福祉部が認証管理します。",
+      zh: "韩国医疗机构分为3级:诊所(一级)—医院(二级)—综合医院·上级综合医院(三级)。自费美容·整形项目主要在诊所进行,上级综合医院专注重症疾病。所有医疗机构均按韩国医疗法注册执照运营,任何手术照片或广告必须依据医疗法第56条通过事前审议。外国患者可凭医疗签证(C-3-3)短期停留,90天以上需医疗旅游签证。韩国外国患者登记医疗机构由保健福祉部认证管理。",
+    },
+  },
+];
+
 export function getGuide(slug: string): GuideContent | null {
-  return GUIDES.find((g) => g.slug === slug) ?? null;
+  const base = GUIDES.find((g) => g.slug === slug);
+  if (!base) return null;
+  // 공통 섹션을 항상 끝에 붙임 (콘텐츠 깊이 증가 → SEO 강화)
+  return { ...base, sections: [...base.sections, ...COMMON_SECTIONS] };
 }

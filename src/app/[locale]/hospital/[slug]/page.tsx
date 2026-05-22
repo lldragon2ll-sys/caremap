@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Link } from "@/i18n/navigation";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { getAllSlugs, getHospitalBySlug, getRelatedHospitals } from "@/lib/db";
+import { getAllSlugs, getHospitalBySlug, getRelatedHospitals, getSameDongHospitals, getNearbySameSpecialty } from "@/lib/db";
 import { Badge } from "@/components/Badge";
 import { Icon } from "@/components/Icon";
 import { HospitalMap } from "@/components/HospitalMap";
@@ -10,6 +10,8 @@ import { HospitalCard } from "@/components/HospitalCard";
 import { ViewTracker } from "@/components/ViewTracker";
 import { SaveButton } from "@/components/SaveButton";
 import { ShareButton } from "@/components/ShareButton";
+import { ConsultModal } from "@/components/ConsultModal";
+import { TelLink } from "@/components/TelLink";
 import { mapDeepLinks, sizeCategory } from "@/lib/hospital-util";
 import { tKind, tSido, tSiggu, pick4 } from "@/lib/i18n-dict";
 import { buildPageMeta } from "@/lib/seo";
@@ -231,9 +233,13 @@ export default async function HospitalPage({ params }: { params: Params }) {
 
   const introEst = h.estb_dd ? t("establishedOn", { date: formatDate(h.estb_dd, locale) ?? "" }) : "";
 
-  // 자동 세부 설명 + 함께 알아본 병원
+  // 자동 세부 설명 + 함께 알아본 병원 + 인근 병원 + 같은 동 다른 진료과
   const descSections = generateDescription(h, locale);
-  const related = await getRelatedHospitals(h, 4);
+  const [related, nearby, sameDong] = await Promise.all([
+    getRelatedHospitals(h, 4),
+    getNearbySameSpecialty(h, 5, 1.5),
+    getSameDongHospitals(h, 5),
+  ]);
 
   return (
     <>
@@ -403,14 +409,41 @@ export default async function HospitalPage({ params }: { params: Params }) {
               <span className="dot" />
               {t("statusUnknown")}
             </div>
-            <h4>{t("callNow")}</h4>
+            <h4>
+              {pick4(locale, "지금 문의하기", "Contact now", "今すぐ問い合わせ", "立即咨询")}
+            </h4>
+
+            {/* 1차 CTA — 상담 신청 (전환 트래킹) */}
+            <ConsultModal
+              hospitalSlug={h.slug}
+              hospitalName={h.yadm_nm}
+              kindLabel={kindLabel}
+              locale={locale}
+              className="cta"
+              triggerLabel={pick4(locale, "상담 신청", "Request Consultation", "相談を申し込む", "申请咨询")}
+            />
+
+            {/* 2차 CTA — 전화 */}
             {tel ? (
               <>
-                <a href={`tel:${tel}`} className="phone-display">{h.tel_no}</a>
-                <a href={`tel:${tel}`} className="cta">
+                <TelLink
+                  tel={tel}
+                  hospitalSlug={h.slug}
+                  hospitalName={h.yadm_nm}
+                  className="phone-display"
+                >
+                  {h.tel_no}
+                </TelLink>
+                <TelLink
+                  tel={tel}
+                  hospitalSlug={h.slug}
+                  hospitalName={h.yadm_nm}
+                  className="cta"
+                  ariaLabel={`${h.yadm_nm} ${t("callButton")}`}
+                >
                   <Icon name="phone" size={14} color="#fff" />
                   {t("callButton")}
-                </a>
+                </TelLink>
                 <p className="meta">{t("callMeta")}</p>
               </>
             ) : (
@@ -552,13 +585,92 @@ export default async function HospitalPage({ params }: { params: Params }) {
         </section>
       )}
 
+      {/* 반경 ~1.5km 인근 동일 진료과 */}
+      {nearby.length > 0 && (
+        <section className="cm-section" style={{ borderTop: "1px solid var(--cm-line)" }}>
+          <div className="section-head">
+            <div>
+              <h2>
+                {pick4(locale,
+                  "걸어서 갈만한 인근 병원",
+                  "Within walking distance",
+                  "徒歩圏内のクリニック",
+                  "步行可达诊所",
+                )}
+              </h2>
+              <div className="sub">
+                {pick4(locale,
+                  `현재 병원에서 반경 ${nearby[0]?.distance ? "~" : "~1.5"}km 이내 같은 진료과`,
+                  `Within ~1.5km of this clinic, same specialty`,
+                  `現在のクリニックから半径~1.5km以内・同じ診療科`,
+                  `本院半径~1.5km内·同科室`,
+                )}
+              </div>
+            </div>
+          </div>
+          <div className="cm-card-grid">
+            {nearby.map((r) => (
+              <div key={r.id} style={{ position: "relative" }}>
+                <HospitalCard h={r} />
+                <span style={{
+                  position: "absolute", top: 12, right: 12, zIndex: 2,
+                  fontSize: 11, fontWeight: 700,
+                  background: "var(--cm-primary)", color: "#fff",
+                  padding: "3px 9px", borderRadius: 999,
+                  pointerEvents: "none",
+                }}>
+                  {r.distance < 1 ? `${(r.distance * 1000).toFixed(0)}m` : `${r.distance.toFixed(1)}km`}
+                </span>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* 같은 동(洞) 다른 진료과 */}
+      {sameDong.length > 0 && (
+        <section className="cm-section surface" style={{ borderTop: "1px solid var(--cm-line)" }}>
+          <div className="section-head">
+            <div>
+              <h2>
+                {pick4(locale,
+                  `${h.emdong_nm ?? tSiggu(h.sggu_cd_nm ?? "", locale)} 다른 진료과`,
+                  `Other specialties in ${h.emdong_nm ?? tSiggu(h.sggu_cd_nm ?? "", locale)}`,
+                  `${h.emdong_nm ?? tSiggu(h.sggu_cd_nm ?? "", locale)}の他診療科`,
+                  `${h.emdong_nm ?? tSiggu(h.sggu_cd_nm ?? "", locale)}的其他科室`,
+                )}
+              </h2>
+              <div className="sub">
+                {pick4(locale,
+                  "함께 방문 가능한 인근 다른 진료과 클리닉",
+                  "Nearby clinics in different specialties you may need",
+                  "近隣の他の診療科クリニック",
+                  "附近其他科室诊所",
+                )}
+              </div>
+            </div>
+          </div>
+          <div className="cm-card-grid">
+            {sameDong.map((r) => <HospitalCard key={r.id} h={r} />)}
+          </div>
+        </section>
+      )}
+
       {/* 모바일 sticky 액션바 (mobile-only via CSS) */}
       <div className="cm-sticky-actions" role="toolbar" aria-label={t("callNow")}>
+        <ConsultModal
+          hospitalSlug={h.slug}
+          hospitalName={h.yadm_nm}
+          kindLabel={kindLabel}
+          locale={locale}
+          className="cm-sticky-actions__btn primary"
+          triggerLabel={pick4(locale, "상담", "Inquire", "相談", "咨询")}
+        />
         {tel && (
-          <a href={`tel:${tel}`} className="cm-sticky-actions__btn primary">
-            <Icon name="phone" size={16} color="#fff" />
+          <TelLink tel={tel} hospitalSlug={h.slug} hospitalName={h.yadm_nm} className="cm-sticky-actions__btn">
+            <Icon name="phone" size={16} color="var(--cm-ink)" />
             <span>{t("callButton")}</span>
-          </a>
+          </TelLink>
         )}
         {links && (
           <a href={links.kakao} target="_blank" rel="noopener noreferrer" className="cm-sticky-actions__btn">

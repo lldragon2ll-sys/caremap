@@ -8,6 +8,7 @@ import { SITE_URL } from "@/lib/seo";
 import "../globals.css";
 import { TopNav } from "@/components/TopNav";
 import { Footer } from "@/components/Footer";
+import { AnalyticsScripts } from "@/components/AnalyticsScripts";
 
 const NAVER_VERIFICATION = process.env.NEXT_PUBLIC_NAVER_SITE_VERIFICATION ?? "";
 const GOOGLE_VERIFICATION = process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION ?? "";
@@ -112,6 +113,7 @@ export default async function LocaleLayout({
         />
       </head>
       <body className="min-h-full flex flex-col">
+        <AnalyticsScripts />
         <NextIntlClientProvider locale={locale}>
           <TopNav />
           <main className="flex-1">{children}</main>

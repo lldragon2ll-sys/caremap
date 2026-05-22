@@ -4,7 +4,7 @@ import { Link } from "@/i18n/navigation";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { GUIDES, getGuide } from "@/lib/guides";
 import { tSpecialty } from "@/lib/i18n-dict";
-import { buildPageMeta } from "@/lib/seo";
+import { buildPageMeta, SITE_URL } from "@/lib/seo";
 
 type Params = Promise<{ locale: string; slug: string }>;
 export const dynamic = "force-static";
@@ -50,9 +50,35 @@ export default async function GuidePage({ params }: { params: Params }) {
     })),
   };
 
+  // Article schema with author + publisher (E-E-A-T 강화)
+  const url = `${SITE_URL}${locale === "ko" ? "" : `/${locale}`}/guide/${slug}`;
+  const articleLD = {
+    "@context": "https://schema.org",
+    "@type": "MedicalWebPage",
+    "@id": `${url}#article`,
+    name: pickLocaleStr(g.title, lang),
+    description: pickLocaleStr(g.lede, lang),
+    url,
+    inLanguage: lang,
+    isPartOf: { "@id": `${SITE_URL}#website` },
+    publisher: { "@id": `${SITE_URL}#organization` },
+    author: {
+      "@type": "Organization",
+      name: "CAREMAP 편집부 / Team Performance Inc.",
+      url: `${SITE_URL}/about`,
+    },
+    mainContentOfPage: {
+      "@type": "WebPageElement",
+      cssSelector: "article",
+    },
+    about: { "@type": "MedicalSpecialty", name: g.specialty },
+    audience: { "@type": "MedicalAudience", audienceType: "patient" },
+  };
+
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLD) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleLD) }} />
       <article style={{ maxWidth: 760, margin: "0 auto", padding: "48px 24px" }}>
         <nav style={{ fontSize: 12.5, color: "var(--cm-text-2)", marginBottom: 12 }}>
           <Link href="/" style={{ color: "var(--cm-text-2)" }}>{tNav("home")}</Link>
