@@ -95,6 +95,8 @@ button { font: inherit; cursor: pointer; }
 .cm-nav .navlinks a.active { color: var(--cm-ink); background: var(--cm-surface); }
 .cm-nav .spacer { flex: 1; }
 .cm-nav .lang-pill { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; border: 1px solid var(--cm-line); font-size: 12.5px; font-weight: 500; color: var(--cm-text); }
+.cm-nav .cm-nav-user { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 999px; border: 1px solid var(--cm-line); font-size: 13px; font-weight: 600; color: var(--cm-ink); text-decoration: none; transition: background .12s; }
+.cm-nav .cm-nav-user:hover { background: var(--cm-surface); }
 .cm-nav .btn-ghost { padding: 8px 14px; border-radius: 8px; font-size: 14px; font-weight: 500; color: var(--cm-text); border: 0; background: transparent; }
 .cm-nav .btn-ghost:hover { background: var(--cm-surface); }
 .cm-nav .btn-primary { padding: 8px 16px; border-radius: 8px; background: var(--cm-ink); color: #fff; border: 0; font-size: 14px; font-weight: 500; }

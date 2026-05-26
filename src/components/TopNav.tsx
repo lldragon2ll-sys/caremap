@@ -5,6 +5,7 @@ import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { Icon } from "./Icon";
 import { LOCALE_LABELS, tSpecialty } from "@/lib/i18n-dict";
 import { routing } from "@/i18n/routing";
+import { getSupabaseBrowser } from "@/lib/supabase-browser";
 
 const SITE_NAME = process.env.NEXT_PUBLIC_SITE_NAME ?? "CAREMAP";
 
@@ -15,7 +16,21 @@ export function TopNav() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
+  const [signedIn, setSignedIn] = useState<boolean | null>(null);
   const langWrapRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    try {
+      const sb = getSupabaseBrowser();
+      sb.auth.getUser().then(({ data }) => setSignedIn(!!data.user));
+      const { data: sub } = sb.auth.onAuthStateChange((_e, session) => {
+        setSignedIn(!!session?.user);
+      });
+      return () => { sub.subscription.unsubscribe(); };
+    } catch {
+      setSignedIn(false);
+    }
+  }, []);
 
   useEffect(() => {
     if (!langOpen) return;
@@ -29,6 +44,7 @@ export function TopNav() {
   }, [langOpen]);
 
   const guideLabel = locale === "en" ? "Guides" : locale === "ja" ? "ガイド" : locale === "zh" ? "指南" : "가이드";
+  const communityLabel = locale === "en" ? "Community" : locale === "ja" ? "コミュニティ" : locale === "zh" ? "社区" : "커뮤니티";
   // 카테고리 URL로 정규화 — /search?q=*는 noindex이므로 시그널이 모이지 않음
   const NAV_ITEMS = [
     { href: "/", label: t("home") },
@@ -36,6 +52,7 @@ export function TopNav() {
     { href: "/s/피부과", label: t("dermatology") },
     { href: "/s/치과", label: t("dental") },
     { href: "/guide", label: guideLabel },
+    { href: "/community", label: communityLabel },
     { href: "/search", label: t("search") },
   ];
 
@@ -109,6 +126,19 @@ export function TopNav() {
         )}
       </div>
 
+      {/* 회원 진입 — 로그인 / 내 계정 */}
+      <Link
+        href={signedIn ? "/me" : "/login"}
+        className="cm-nav-user desktop-only"
+        aria-label={signedIn ? "My Account" : "Log in"}
+      >
+        <Icon name="user" size={14} color="var(--cm-ink)" />
+        <span>
+          {signedIn
+            ? (locale === "en" ? "My" : locale === "ja" ? "マイ" : locale === "zh" ? "我的" : "내 계정")
+            : (locale === "en" ? "Log in" : locale === "ja" ? "ログイン" : locale === "zh" ? "登录" : "로그인")}
+        </span>
+      </Link>
       <Link
         href="/search"
         className="btn-primary"
@@ -141,6 +171,16 @@ export function TopNav() {
                 {n.label}
               </Link>
             ))}
+            <Link
+              href={signedIn ? "/me" : "/login"}
+              role="menuitem"
+              onClick={() => setMobileOpen(false)}
+              style={{ fontWeight: 600, color: "var(--cm-primary)" }}
+            >
+              {signedIn
+                ? (locale === "en" ? "My Account" : locale === "ja" ? "マイアカウント" : locale === "zh" ? "我的账户" : "내 계정")
+                : (locale === "en" ? "Log in / Sign up" : locale === "ja" ? "ログイン / 登録" : locale === "zh" ? "登录 / 注册" : "로그인 / 회원가입")}
+            </Link>
             <div style={{ borderTop: "1px solid var(--cm-line)", marginTop: 8, paddingTop: 8 }}>
               <div style={{ fontSize: 12, color: "var(--cm-text-2)", fontWeight: 600, padding: "4px 8px" }}>
                 {locale === "ko" ? "언어" : locale === "ja" ? "言語" : locale === "zh" ? "语言" : "Language"}

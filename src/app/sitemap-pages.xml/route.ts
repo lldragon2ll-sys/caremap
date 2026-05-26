@@ -34,6 +34,7 @@ export async function GET() {
     { url: `${SITE_URL}/`, freq: "daily", pri: 1.0 },
     { url: `${SITE_URL}/about`, freq: "monthly", pri: 0.5 },
     { url: `${SITE_URL}/guide`, freq: "weekly", pri: 0.7 },
+    { url: `${SITE_URL}/community`, freq: "daily", pri: 0.7 },
     { url: `${SITE_URL}/register`, freq: "monthly", pri: 0.3 },
     { url: `${SITE_URL}/advertise`, freq: "monthly", pri: 0.3 },
     { url: `${SITE_URL}/terms`, freq: "yearly", pri: 0.2 },

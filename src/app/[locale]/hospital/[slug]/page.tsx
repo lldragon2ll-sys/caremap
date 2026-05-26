@@ -12,6 +12,7 @@ import { SaveButton } from "@/components/SaveButton";
 import { ShareButton } from "@/components/ShareButton";
 import { ConsultModal } from "@/components/ConsultModal";
 import { TelLink } from "@/components/TelLink";
+import { ReviewSection } from "@/components/ReviewSection";
 import { mapDeepLinks, sizeCategory } from "@/lib/hospital-util";
 import { tKind, tSido, tSiggu, pick4 } from "@/lib/i18n-dict";
 import { buildPageMeta } from "@/lib/seo";
@@ -401,6 +402,9 @@ export default async function HospitalPage({ params }: { params: Params }) {
               />
             )}
           </section>
+
+          {/* 이용 후기 (커뮤니티) */}
+          <ReviewSection h={h} locale={locale} />
         </div>
 
         <aside className="cm-side">
