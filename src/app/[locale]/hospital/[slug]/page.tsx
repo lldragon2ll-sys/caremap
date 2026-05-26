@@ -20,7 +20,9 @@ import { generateDescription } from "@/lib/hospital-description";
 import { romanizeYadm, romanizeAddr } from "@/lib/romanize";
 import type { Hospital } from "@/lib/types";
 
-export const dynamic = "force-dynamic";
+// ISR — 1시간 revalidate. force-dynamic 제거로 Vercel 비용 대폭 절감.
+// 사용자별 상태(로그인/내후기)는 클라이언트 컴포넌트에서 fetch.
+export const revalidate = 3600;
 
 const SITE_NAME = process.env.NEXT_PUBLIC_SITE_NAME ?? "CAREMAP";
 

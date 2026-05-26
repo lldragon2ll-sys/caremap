@@ -7,7 +7,8 @@ import { Pagination } from "@/components/Pagination";
 import { tSido, tSiggu, tSpecialty, pick4 } from "@/lib/i18n-dict";
 import { buildPageMeta } from "@/lib/seo";
 
-export const dynamic = "force-dynamic";
+// ISR 1시간 — Vercel 비용 절감
+export const revalidate = 3600;
 
 type Params = Promise<{ locale: string; sido: string; sigungu: string }>;
 type SearchParams = Promise<{ page?: string }>;

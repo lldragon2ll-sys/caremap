@@ -1,8 +1,7 @@
-import { Link } from "@/i18n/navigation";
-import { createSupabaseServerClient } from "@/lib/supabase-server";
+import { supabase } from "@/lib/supabase";
 import { pick4 } from "@/lib/i18n-dict";
 import type { Hospital } from "@/lib/types";
-import { ReviewForm } from "./ReviewForm";
+import { ReviewBox } from "./ReviewBox";
 
 type Review = {
   id: number;
@@ -21,10 +20,7 @@ type Review = {
  * - aggregateRating은 노출하지 않음 (실데이터 부족 시 가짜 신호 방지)
  */
 export async function ReviewSection({ h, locale }: { h: Hospital; locale: string }) {
-  const supabase = await createSupabaseServerClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  // 후기 목록 (최신 10)
+  // 익명 클라이언트로 published 후기 조회 — cookies 미사용 → ISR 캐싱 가능 (Vercel 비용 절감)
   let reviews: Review[] = [];
   let total = 0;
   let avg: number | null = null;
@@ -43,11 +39,8 @@ export async function ReviewSection({ h, locale }: { h: Hospital; locale: string
       avg = Math.round((sum / reviews.length) * 10) / 10;
     }
   } catch {
-    // 테이블 미생성 — 무시
     return null;
   }
-
-  const myReview = user ? reviews.find((r) => r.user_id === user.id) : null;
 
   return (
     <section className="cm-section-card" id="reviews" style={{ marginTop: 20 }}>
@@ -110,33 +103,14 @@ export async function ReviewSection({ h, locale }: { h: Hospital; locale: string
         </ul>
       )}
 
-      {/* 후기 작성 폼 */}
-      <div style={{ marginTop: 20 }}>
-        {!user ? (
-          <Link
-            href={`/login?next=/hospital/${encodeURIComponent(h.slug)}%23reviews`}
-            style={{
-              display: "inline-flex", alignItems: "center", gap: 6,
-              padding: "10px 18px", borderRadius: 10,
-              background: "var(--cm-ink)", color: "#fff",
-              fontSize: 13.5, fontWeight: 600, textDecoration: "none",
-            }}
-          >
-            {pick4(locale, "후기 작성하려면 로그인", "Log in to write a review", "レビューを書くにはログイン", "登录后撰写评论")}
-          </Link>
-        ) : myReview ? (
-          <p style={{ fontSize: 13, color: "var(--cm-text-2)", padding: 12, background: "var(--cm-primary-50)", borderRadius: 8 }}>
-            ✓ {pick4(locale, "이미 후기를 작성하셨습니다.", "You've already reviewed this clinic.", "既にレビューを投稿済みです。", "您已对该诊所发表评论。")}
-          </p>
-        ) : (
-          <ReviewForm
-            hospitalId={h.id}
-            hospitalSlug={h.slug}
-            hospitalName={h.yadm_nm}
-            locale={locale}
-          />
-        )}
-      </div>
+      {/* 후기 작성 영역 — 클라이언트에서 로그인 상태 + 본인 후기 여부 판단 */}
+      <ReviewBox
+        hospitalId={h.id}
+        hospitalSlug={h.slug}
+        hospitalName={h.yadm_nm}
+        locale={locale}
+        reviewUserIds={reviews.map((r) => r.user_id)}
+      />
     </section>
   );
 }
