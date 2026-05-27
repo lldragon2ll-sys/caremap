@@ -25,6 +25,9 @@ export function SignupForm({ locale, next }: Props) {
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [interests, setInterests] = useState<string[]>([]);
+  const toggleInterest = (s: string) =>
+    setInterests((prev) => prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s]);
 
   const L = {
     email: pick4(locale, "이메일", "Email", "メール", "邮箱"),
@@ -82,7 +85,7 @@ export function SignupForm({ locale, next }: Props) {
     const gender = String(fd.get("gender") ?? "");
     const birthYearRaw = String(fd.get("birth_year") ?? "").trim();
     const region_sido = String(fd.get("region_sido") ?? "");
-    const interests = fd.getAll("interests").map(String);
+    // interests come from React state (not FormData) — chip toggle buttons
     const terms = fd.get("terms") === "on";
     const marketing = fd.get("marketing") === "on";
 
@@ -179,12 +182,24 @@ export function SignupForm({ locale, next }: Props) {
       <div>
         <label style={labelStyle}>{L.interestsLabel}</label>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-          {INTERESTS.map((spec) => (
-            <label key={spec} style={chipLabel}>
-              <input type="checkbox" name="interests" value={spec} style={{ display: "none" }} />
-              <span className="cm-chip-text">{spec}</span>
-            </label>
-          ))}
+          {INTERESTS.map((s) => {
+            const on = interests.includes(s);
+            return (
+              <button
+                key={s} type="button"
+                onClick={() => toggleInterest(s)}
+                style={{
+                  fontSize: 13, padding: "6px 12px", borderRadius: 999,
+                  border: on ? "1px solid var(--cm-primary)" : "1px solid var(--cm-line)",
+                  background: on ? "var(--cm-primary-50)" : "#fff",
+                  color: on ? "var(--cm-primary-700)" : "var(--cm-text-2)",
+                  cursor: "pointer", fontWeight: on ? 600 : 400,
+                }}
+              >
+                {s}
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -234,9 +249,6 @@ const labelStyle: React.CSSProperties = {
 };
 const hintStyle: React.CSSProperties = {
   fontSize: 11.5, color: "var(--cm-text-3)", margin: "6px 0 0",
-};
-const chipLabel: React.CSSProperties = {
-  cursor: "pointer", fontSize: 13,
 };
 const agreeLabel: React.CSSProperties = {
   display: "flex", gap: 8, fontSize: 13, lineHeight: 1.5,
