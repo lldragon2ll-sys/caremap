@@ -4,34 +4,40 @@ import { getSupabaseBrowser } from "@/lib/supabase-browser";
 import { pick4 } from "@/lib/i18n-dict";
 import { SITE_URL } from "@/lib/seo";
 
-type Mode = "magic" | "password";
+type Mode = "password" | "magic";
 
+/**
+ * 로그인 폼 — 비밀번호 로그인 우선, 매직링크는 비밀번호 잊었을 때 보조 수단.
+ * 신규 가입은 별도 /signup 페이지로 안내 (회원정보 수집 폼 사용).
+ */
 export function LoginForm({ locale, next }: { locale: string; next: string }) {
-  const [mode, setMode] = useState<Mode>("magic");
+  const [mode, setMode] = useState<Mode>("password");
   const [submitting, setSubmitting] = useState(false);
-  const [done, setDone] = useState<"sent" | "loggedin" | null>(null);
+  const [done, setDone] = useState<"sent" | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const L = {
     emailLabel: pick4(locale, "이메일", "Email", "メール", "邮箱"),
     pwLabel: pick4(locale, "비밀번호", "Password", "パスワード", "密码"),
-    magicCta: pick4(locale, "로그인 링크 보내기", "Send login link", "ログインリンクを送信", "发送登录链接"),
-    pwCta: pick4(locale, "비밀번호로 로그인", "Log in with password", "パスワードでログイン", "用密码登录"),
-    switchToPw: pick4(locale, "비밀번호로 로그인하기", "Use password instead", "パスワードでログイン", "使用密码登录"),
-    switchToMagic: pick4(locale, "이메일 링크로 로그인", "Use email link instead", "メールリンクでログイン", "使用邮件链接登录"),
-    sending: pick4(locale, "전송 중…", "Sending…", "送信中…", "提交中…"),
+    pwCta: pick4(locale, "로그인", "Log in", "ログイン", "登录"),
+    magicCta: pick4(locale, "로그인 링크 받기", "Send login link", "ログインリンクを受け取る", "接收登录链接"),
+    switchToMagic: pick4(locale, "비밀번호를 잊으셨나요?", "Forgot your password?", "パスワードをお忘れですか?", "忘记密码?"),
+    switchToPw: pick4(locale, "비밀번호로 로그인", "Log in with password", "パスワードでログイン", "用密码登录"),
     signingIn: pick4(locale, "로그인 중…", "Signing in…", "ログイン中…", "登录中…"),
+    sending: pick4(locale, "전송 중…", "Sending…", "送信中…", "提交中…"),
     sentMsg: pick4(locale,
-      "이메일로 로그인 링크를 보냈습니다. 이메일을 확인해주세요.",
+      "이메일로 로그인 링크를 보냈습니다. 이메일을 확인해 주세요.",
       "We've sent you a login link. Check your email.",
       "ログインリンクをメールでお送りしました。ご確認ください。",
       "已发送登录链接到您的邮箱,请查收。",
     ),
-    consent: pick4(locale,
-      "로그인하시면 이용약관 및 개인정보처리방침에 동의하는 것으로 간주됩니다.",
-      "By logging in, you agree to our Terms and Privacy Policy.",
-      "ログインにより利用規約・プライバシーポリシーに同意したものとみなされます。",
-      "登录即表示您同意服务条款和隐私政策。",
+    noAccount: pick4(locale, "아직 회원이 아니신가요?", "Don't have an account?", "まだ会員ではありませんか?", "还不是会员?"),
+    signupLink: pick4(locale, "회원가입", "Sign up", "会員登録", "注册"),
+    invalidLogin: pick4(locale,
+      "이메일 또는 비밀번호가 올바르지 않습니다. 회원이 아니시면 회원가입해 주세요.",
+      "Invalid email or password. Please sign up if you don't have an account.",
+      "メールまたはパスワードが正しくありません。会員でない場合は新規登録してください。",
+      "邮箱或密码错误。如未注册请先注册。",
     ),
   };
 
@@ -45,38 +51,25 @@ export function LoginForm({ locale, next }: { locale: string; next: string }) {
     const password = String(fd.get("password") ?? "");
 
     try {
-      if (mode === "magic") {
-        // Magic link — 이메일로 로그인 URL 전송
+      if (mode === "password") {
+        const { data, error: err } = await supabase.auth.signInWithPassword({ email, password });
+        if (err) {
+          setError(L.invalidLogin);
+          return;
+        }
+        if (data.session) {
+          window.location.href = next;
+        }
+      } else {
+        // 매직링크 — 비밀번호를 잊었거나 기존 회원의 보조 로그인 수단.
+        // shouldCreateUser=false 로 미회원 자동가입 방지 (회원가입은 /signup 폼 사용).
         const redirectTo = `${SITE_URL}/auth/callback?next=${encodeURIComponent(next)}`;
         const { error: err } = await supabase.auth.signInWithOtp({
           email,
-          options: {
-            emailRedirectTo: redirectTo,
-            shouldCreateUser: true,
-          },
+          options: { emailRedirectTo: redirectTo, shouldCreateUser: false },
         });
         if (err) throw err;
         setDone("sent");
-      } else {
-        // 비밀번호 로그인 — 없으면 회원가입 + 비번 설정 형태로
-        const { data, error: err } = await supabase.auth.signInWithPassword({ email, password });
-        if (err) {
-          // 사용자 없음 또는 비번 다름 → 회원가입 시도
-          if (err.message.toLowerCase().includes("invalid") || err.message.toLowerCase().includes("not found")) {
-            const { error: signupErr } = await supabase.auth.signUp({
-              email, password,
-              options: { emailRedirectTo: `${SITE_URL}/auth/callback?next=${encodeURIComponent(next)}` },
-            });
-            if (signupErr) throw signupErr;
-            setDone("sent");
-            return;
-          }
-          throw err;
-        }
-        if (data.session) {
-          setDone("loggedin");
-          window.location.href = next;
-        }
       }
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Error");
@@ -123,21 +116,29 @@ export function LoginForm({ locale, next }: { locale: string; next: string }) {
           : (mode === "magic" ? L.magicCta : L.pwCta)}
       </button>
       {error && (
-        <div style={{ color: "var(--cm-red, #d33)", fontSize: 13 }}>{error}</div>
+        <div style={{ color: "var(--cm-red, #d33)", fontSize: 13, lineHeight: 1.5 }}>{error}</div>
       )}
+
       <button
         type="button"
-        onClick={() => { setMode(mode === "magic" ? "password" : "magic"); setError(null); }}
+        onClick={() => { setMode(mode === "password" ? "magic" : "password"); setError(null); }}
         style={{
           background: "transparent", border: "none",
           color: "var(--cm-text-2)", fontSize: 13, cursor: "pointer",
           padding: 6, textDecoration: "underline",
         }}
       >
-        {mode === "magic" ? L.switchToPw : L.switchToMagic}
+        {mode === "password" ? L.switchToMagic : L.switchToPw}
       </button>
-      <p style={{ fontSize: 11.5, color: "var(--cm-text-3)", textAlign: "center", marginTop: 8, lineHeight: 1.5 }}>
-        {L.consent}
+
+      <p style={{ fontSize: 13, color: "var(--cm-text-2)", textAlign: "center", marginTop: 12 }}>
+        {L.noAccount}{" "}
+        <a
+          href={`/${locale}/signup${next !== "/me" ? `?next=${encodeURIComponent(next)}` : ""}`}
+          style={{ color: "var(--cm-primary)", fontWeight: 600, textDecoration: "underline" }}
+        >
+          {L.signupLink}
+        </a>
       </p>
     </form>
   );

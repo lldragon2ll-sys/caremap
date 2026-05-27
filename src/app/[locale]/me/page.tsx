@@ -23,12 +23,16 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
 }
 
 type Profile = {
-  id: string;
+  user_id: string;
   nickname: string | null;
-  locale: string | null;
+  gender: string | null;
+  birth_year: number | null;
+  region_sido: string | null;
+  interests: string[] | null;
+  marketing_opt_in: boolean | null;
 };
 
-type Review = { id: number; hospital_slug: string; hospital_name: string; rating: number; created_at: string };
+type Review = { id: number; hospital_id: number; rating: number; created_at: string };
 type Post = { id: number; title: string; category: string; created_at: string };
 
 export default async function MePage({ params }: { params: Params }) {
@@ -40,19 +44,23 @@ export default async function MePage({ params }: { params: Params }) {
 
   const supabase = await createSupabaseServerClient();
 
-  // 프로필 (없으면 생성)
+  // 프로필 (트리거가 회원가입 시 자동 생성 — 미존재 시 fallback insert)
   let profile: Profile | null = null;
   {
     const { data } = await supabase
       .from("profiles")
-      .select("id, nickname, locale")
-      .eq("id", user.id)
+      .select("user_id, nickname, gender, birth_year, region_sido, interests, marketing_opt_in")
+      .eq("user_id", user.id)
       .maybeSingle();
     profile = (data as Profile | null) ?? null;
     if (!profile) {
       const seed = `user_${user.id.slice(0, 6)}`;
-      await supabase.from("profiles").insert({ id: user.id, nickname: seed, locale });
-      profile = { id: user.id, nickname: seed, locale };
+      await supabase.from("profiles").insert({ user_id: user.id, nickname: seed });
+      profile = {
+        user_id: user.id, nickname: seed,
+        gender: null, birth_year: null, region_sido: null,
+        interests: [], marketing_opt_in: false,
+      };
     }
   }
 
@@ -63,7 +71,7 @@ export default async function MePage({ params }: { params: Params }) {
     const [r, p] = await Promise.all([
       supabase
         .from("reviews")
-        .select("id, hospital_slug, hospital_name, rating, created_at")
+        .select("id, hospital_id, rating, created_at")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
         .limit(10),
@@ -96,7 +104,14 @@ export default async function MePage({ params }: { params: Params }) {
         <h2 style={sectionTitle}>{pick4(locale, "프로필", "Profile", "プロフィール", "个人资料")}</h2>
         <ProfileForm
           locale={locale}
-          initialNickname={profile.nickname ?? ""}
+          initial={{
+            nickname: profile.nickname ?? "",
+            gender: profile.gender,
+            birth_year: profile.birth_year,
+            region_sido: profile.region_sido,
+            interests: profile.interests ?? [],
+            marketing_opt_in: profile.marketing_opt_in ?? false,
+          }}
         />
       </section>
 
@@ -117,9 +132,9 @@ export default async function MePage({ params }: { params: Params }) {
           <ul style={listStyle}>
             {myReviews.map((r) => (
               <li key={r.id} style={listItem}>
-                <Link href={`/hospital/${encodeURIComponent(r.hospital_slug)}`} style={{ fontWeight: 600 }}>
-                  {r.hospital_name}
-                </Link>
+                <span style={{ fontWeight: 600 }}>
+                  {pick4(locale, "병원", "Hospital", "クリニック", "诊所")} #{r.hospital_id}
+                </span>
                 <span style={{ color: "var(--cm-text-3)", marginLeft: 8 }}>★ {r.rating}</span>
                 <span style={{ color: "var(--cm-text-3)", marginLeft: 8, fontSize: 12 }}>
                   {new Date(r.created_at).toLocaleDateString(locale)}

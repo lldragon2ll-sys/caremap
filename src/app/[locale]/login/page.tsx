@@ -44,10 +44,10 @@ export default async function LoginPage({ params, searchParams }: { params: Para
       </h1>
       <p style={{ fontSize: 13.5, color: "var(--cm-text-2)", lineHeight: 1.6, marginBottom: 28 }}>
         {pick4(locale,
-          "이메일을 입력하면 로그인 링크를 보내드립니다. 회원 가입은 별도 필요 없습니다 — 첫 로그인 시 자동 가입됩니다.",
-          "Enter your email — we'll send a login link. No separate signup needed.",
-          "メールアドレスを入力するとログインリンクをお送りします。別途会員登録不要です。",
-          "输入邮箱即可接收登录链接。无需单独注册。",
+          "가입한 이메일과 비밀번호로 로그인하세요.",
+          "Log in with your registered email and password.",
+          "登録済みのメールアドレスとパスワードでログインしてください。",
+          "请使用已注册的邮箱和密码登录。",
         )}
       </p>
       <LoginForm locale={locale} next={sp.next ?? "/me"} />
