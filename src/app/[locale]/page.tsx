@@ -88,11 +88,12 @@ export default async function Home({
   setRequestLocale(locale);
   const t = await getTranslations("home");
   const tNav = await getTranslations("nav");
+  // 하나라도 실패 시 ISR이 500을 캐싱하지 않도록 각 함수 격리.
   const [sidos, top, popularSearches, mostViewed] = await Promise.all([
-    getSidoList().catch(() => []),
-    getAestheticClinics(6),
-    getTopSearches(8),
-    getTopViewedHospitals(6),
+    getSidoList().catch((e) => { console.error("[home] sidos:", e); return [] as Awaited<ReturnType<typeof getSidoList>>; }),
+    getAestheticClinics(6).catch((e) => { console.error("[home] aesthetic:", e); return [] as Awaited<ReturnType<typeof getAestheticClinics>>; }),
+    getTopSearches(8).catch((e) => { console.error("[home] topSearches:", e); return [] as Awaited<ReturnType<typeof getTopSearches>>; }),
+    getTopViewedHospitals(6).catch((e) => { console.error("[home] mostViewed:", e); return [] as Awaited<ReturnType<typeof getTopViewedHospitals>>; }),
   ]);
   const totalCount = sidos.reduce((a, b) => a + b.count, 0);
 
