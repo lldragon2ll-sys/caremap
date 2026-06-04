@@ -48,8 +48,8 @@ export default async function SigunguPage({ params, searchParams }: { params: Pa
   const sp = await searchParams;
   const page = Math.max(1, parseInt(sp.page ?? "1", 10) || 1);
   setRequestLocale(locale);
-  const t = await getTranslations("sigungu");
-  const tNav = await getTranslations("nav");
+  const t = await getTranslations({ locale, namespace: "sigungu" });
+  const tNav = await getTranslations({ locale, namespace: "nav" });
   const sidoNm = decodeURIComponent(sido);
   const sigguNm = decodeURIComponent(sigungu);
   const sidoDisplay = tSido(sidoNm, locale);

@@ -36,8 +36,8 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
 export default async function SidoPage({ params }: { params: Params }) {
   const { locale, sido } = await params;
   setRequestLocale(locale);
-  const t = await getTranslations("region");
-  const tNav = await getTranslations("nav");
+  const t = await getTranslations({ locale, namespace: "region" });
+  const tNav = await getTranslations({ locale, namespace: "nav" });
   const decoded = decodeURIComponent(sido);
   const sidoDisplay = tSido(decoded, locale);
 

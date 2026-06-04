@@ -149,8 +149,8 @@ export default async function SpecialtyPage({ params, searchParams }: { params: 
   const sp_ = await searchParams;
   const page = Math.max(1, parseInt(sp_.page ?? "1", 10) || 1);
   setRequestLocale(locale);
-  const t = await getTranslations("category");
-  const tNav = await getTranslations("nav");
+  const t = await getTranslations({ locale, namespace: "category" });
+  const tNav = await getTranslations({ locale, namespace: "nav" });
   const sidoNm = decodeURIComponent(sido);
   const sigguNm = decodeURIComponent(sigungu);
   const sp = decodeURIComponent(specialty);

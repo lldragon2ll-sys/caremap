@@ -40,6 +40,10 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { locale, slug } = await params;
+  // ISR (revalidate=3600) 환경에서 next-intl API 사용 전 setRequestLocale 필수.
+  // 누락 시 "Usage of next-intl APIs in Server Components currently opts into
+  // dynamic rendering" 에러로 500 발생 + 1시간 캐싱.
+  setRequestLocale(locale);
   let h: Hospital | null = null;
   try {
     h = await getHospitalBySlug(decodeURIComponent(slug));
@@ -203,10 +207,13 @@ function staffSummary(h: Hospital, locale: string) {
 export default async function HospitalPage({ params }: { params: Params }) {
   const { locale, slug } = await params;
   setRequestLocale(locale);
+  // 명시적 locale 전달 — ISR(revalidate=3600)에서 implicit form은 setRequestLocale 캐시
+  // miss 시 "Usage of next-intl APIs ... opts into dynamic rendering" 에러로 500.
+  // 명시적 form은 request context 캐시 의존하지 않아 안전.
   let t, tNav;
   try {
-    t = await getTranslations("hospital");
-    tNav = await getTranslations("nav");
+    t = await getTranslations({ locale, namespace: "hospital" });
+    tNav = await getTranslations({ locale, namespace: "nav" });
   } catch (e) {
     console.error("[hospital-page] getTranslations failed:", e);
     throw e;

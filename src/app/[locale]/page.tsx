@@ -86,8 +86,8 @@ export default async function Home({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const t = await getTranslations("home");
-  const tNav = await getTranslations("nav");
+  const t = await getTranslations({ locale, namespace: "home" });
+  const tNav = await getTranslations({ locale, namespace: "nav" });
   // 하나라도 실패 시 ISR이 500을 캐싱하지 않도록 각 함수 격리.
   const [sidos, top, popularSearches, mostViewed] = await Promise.all([
     getSidoList().catch((e) => { console.error("[home] sidos:", e); return [] as Awaited<ReturnType<typeof getSidoList>>; }),
