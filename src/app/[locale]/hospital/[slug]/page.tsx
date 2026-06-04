@@ -20,9 +20,10 @@ import { generateDescription } from "@/lib/hospital-description";
 import { romanizeYadm, romanizeAddr } from "@/lib/romanize";
 import type { Hospital } from "@/lib/types";
 
-// ISR — 1시간 revalidate. force-dynamic 제거로 Vercel 비용 대폭 절감.
-// 사용자별 상태(로그인/내후기)는 클라이언트 컴포넌트에서 fetch.
-export const revalidate = 3600;
+// ISR 시도 → DYNAMIC_SERVER_USAGE 에러로 5일째 500 캐싱 사고 발생.
+// 원인: next-intl + 내부 dynamic API 호출이 static 렌더와 호환 안 됨.
+// 안정 우선: force-dynamic으로 복귀. 추후 동적 API 호출 chain 정리되면 ISR 재시도.
+export const dynamic = "force-dynamic";
 
 const SITE_NAME = process.env.NEXT_PUBLIC_SITE_NAME ?? "CAREMAP";
 
