@@ -237,11 +237,13 @@ export default async function HospitalPage({ params }: { params: Params }) {
   const introEst = h.estb_dd ? t("establishedOn", { date: formatDate(h.estb_dd, locale) ?? "" }) : "";
 
   // 자동 세부 설명 + 함께 알아본 병원 + 인근 병원 + 같은 동 다른 진료과
+  // Promise.all로 묶지 않음 — 하나라도 throw 시 ISR이 500을 1시간 캐싱하는 사고 방지.
   const descSections = generateDescription(h, locale);
+  const safe = <T,>(p: Promise<T>, fb: T): Promise<T> => p.catch((e) => { console.error("[hospital-detail]", e); return fb; });
   const [related, nearby, sameDong] = await Promise.all([
-    getRelatedHospitals(h, 4),
-    getNearbySameSpecialty(h, 5, 1.5),
-    getSameDongHospitals(h, 5),
+    safe(getRelatedHospitals(h, 4), []),
+    safe(getNearbySameSpecialty(h, 5, 1.5), []),
+    safe(getSameDongHospitals(h, 5), []),
   ]);
 
   return (
