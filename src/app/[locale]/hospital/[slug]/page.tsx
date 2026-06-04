@@ -203,11 +203,17 @@ function staffSummary(h: Hospital, locale: string) {
 export default async function HospitalPage({ params }: { params: Params }) {
   const { locale, slug } = await params;
   setRequestLocale(locale);
-  const t = await getTranslations("hospital");
-  const tNav = await getTranslations("nav");
+  let t, tNav;
+  try {
+    t = await getTranslations("hospital");
+    tNav = await getTranslations("nav");
+  } catch (e) {
+    console.error("[hospital-page] getTranslations failed:", e);
+    throw e;
+  }
   const decoded = decodeURIComponent(slug);
   let h: Hospital | null = null;
-  try { h = await getHospitalBySlug(decoded); } catch {}
+  try { h = await getHospitalBySlug(decoded); } catch (e) { console.error("[hospital-page] getHospitalBySlug failed:", e); }
   if (!h) notFound();
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://example.com";
