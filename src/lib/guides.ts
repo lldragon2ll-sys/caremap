@@ -244,6 +244,165 @@ export const GUIDES: GuideContent[] = [
       },
     ],
   },
+  {
+    slug: "hair-transplant",
+    specialty: "성형외과",
+    title: {
+      ko: "한국 모발이식 가이드 (탈모·헤어라인)",
+      en: "Hair Transplant in Korea: Complete Guide",
+      ja: "韓国の植毛ガイド (薄毛・ヘアライン)",
+      zh: "韩国植发指南 (脱发·发际线)",
+    },
+    lede: {
+      ko: "한국은 모발이식 분야에서 세계적으로 손꼽히는 기술력을 보유하고 있습니다. 강남 일대를 중심으로 비절개(FUE)와 절개(FUT) 방식을 모두 시행하는 전문 의료기관이 밀집해 있으며, 모든 시술은 의료법 제56조에 따른 정식 의료기관에서만 이루어집니다.",
+      en: "Korea is recognized worldwide for its hair transplant expertise. Specialized clinics concentrated in Gangnam perform both non-incisional (FUE) and incisional (FUT) techniques, and all procedures are carried out only at licensed institutions under Article 56 of the Medical Service Act.",
+      ja: "韓国は植毛分野で世界トップクラスの技術力を誇ります。江南エリアを中心に非切開(FUE)・切開(FUT)の両方式を行う専門医療機関が集まり、すべての施術は医療法第56条に基づく正規医療機関のみで行われます。",
+      zh: "韩国在植发领域拥有世界顶尖技术。以江南地区为中心,聚集了同时开展非切开(FUE)与切开(FUT)方式的专业医疗机构,所有手术仅在依据医疗法第56条的正规医疗机构进行。",
+    },
+    sections: [
+      {
+        heading: { ko: "주요 시술 방식", en: "Main Techniques", ja: "主な施術方式", zh: "主要术式" },
+        body: {
+          ko: "비절개(FUE)는 뒤통수에서 모낭을 하나씩 채취해 흉터가 거의 없고 회복이 빠릅니다. 절개(FUT)는 두피를 절개해 한 번에 많은 모낭을 확보하므로 대면적 이식에 적합합니다. 이 외에 헤어라인 교정, 정수리(가마) 보강, 이마축소, 눈썹·수염 이식이 대표적입니다. 비절개와 절개 중 선택은 탈모 범위·모발 밀도·예산에 따라 의료진과 상담해 결정합니다.",
+          en: "FUE (non-incisional) extracts follicles one by one from the back of the head, leaving minimal scarring and allowing fast recovery. FUT (incisional) removes a strip of scalp to harvest many follicles at once, suited to large-area grafts. Other common procedures include hairline correction, crown reinforcement, forehead reduction, and eyebrow/beard transplants. The choice between FUE and FUT depends on the extent of hair loss, density, and budget — discuss with your medical team.",
+          ja: "FUE(非切開)は後頭部から毛包を1つずつ採取し、傷跡がほとんどなく回復が早いです。FUT(切開)は頭皮を切開して一度に多くの毛包を確保するため、広範囲移植に適しています。その他、ヘアライン矯正、つむじ補強、額縮小、眉・髭の移植が代表的です。FUEとFUTの選択は薄毛範囲・毛髪密度・予算により医療陣と相談して決定します。",
+          zh: "FUE(非切开)从后枕部逐个提取毛囊,几乎无疤痕、恢复快。FUT(切开)切取头皮一次性获取大量毛囊,适合大面积移植。此外还有发际线矫正、头顶(旋)加密、缩额、眉毛·胡须移植等。FUE与FUT的选择需根据脱发范围·毛发密度·预算与医疗团队商议决定。",
+        },
+      },
+      {
+        heading: { ko: "비용 가이드", en: "Cost Guide", ja: "費用ガイド", zh: "费用指南" },
+        body: {
+          ko: "모발이식 비용은 보통 이식 모낭(그래프트) 수 단위로 책정됩니다. 일반적으로 2,000~3,000 모낭 단위 시술이 많으며 모낭당 단가는 의료기관·방식(FUE/FUT)·로봇 장비 사용 여부에 따라 차이가 큽니다. 모든 시술은 비급여이므로 반드시 사전 견적과 총 모낭 수 기준 명세를 확인하세요. 사후관리(약물·두피 케어) 포함 여부도 함께 확인하는 것이 좋습니다.",
+          en: "Hair transplant pricing is usually based on the number of grafts (follicular units). Procedures of 2,000–3,000 grafts are common, and per-graft pricing varies significantly by clinic, technique (FUE/FUT), and whether robotic equipment is used. All procedures are out-of-pocket, so always confirm an estimate and an itemized total-graft quote. Also check whether aftercare (medication, scalp care) is included.",
+          ja: "植毛費用は通常、移植する毛包(グラフト)数単位で算定されます。一般的に2,000〜3,000グラフトの施術が多く、グラフト単価は医療機関・方式(FUE/FUT)・ロボット機器の使用有無により差が大きいです。すべて自由診療のため、必ず事前見積もりと総グラフト数基準の明細をご確認ください。アフターケア(薬剤・頭皮ケア)の含有有無も確認しましょう。",
+          zh: "植发费用通常按移植毛囊(毛囊单位)数量计价。一般2,000–3,000株的手术较常见,每株单价因诊所·方式(FUE/FUT)·是否使用机器人设备差异较大。所有项目均为自费,请务必确认报价单及按总毛囊数列出的明细。同时建议确认术后护理(药物·头皮护理)是否包含。",
+        },
+      },
+      {
+        heading: { ko: "회복과 결과", en: "Recovery & Results", ja: "回復と結果", zh: "恢复与效果" },
+        body: {
+          ko: "이식 후 2~3주 내 이식모가 일시적으로 빠지는 휴지기 탈락이 정상적으로 나타나며, 새 모발은 보통 3~4개월부터 자라기 시작해 9~12개월에 밀도가 안정됩니다. 시술 후 일정 기간 음주·흡연·격렬한 운동·사우나는 제한됩니다. 결과에는 개인차가 있으므로 의료진과 충분히 상담하고, 경과 사진과 사후관리 일정을 서면으로 안내받는 것이 좋습니다.",
+          en: "A temporary 'shock loss' of transplanted hair within 2–3 weeks is normal; new hair typically starts growing from 3–4 months and density stabilizes around 9–12 months. Alcohol, smoking, strenuous exercise, and saunas are restricted for a period after surgery. Results vary individually, so consult thoroughly with your medical team and ask for progress photos and a written aftercare schedule.",
+          ja: "移植後2〜3週間以内に移植毛が一時的に抜ける休止期脱落は正常な反応で、新しい毛髪は通常3〜4ヶ月から生え始め、9〜12ヶ月で密度が安定します。施術後一定期間は飲酒・喫煙・激しい運動・サウナが制限されます。結果には個人差があるため、医療陣と十分相談し、経過写真とアフターケア日程を書面でご案内いただくことをお勧めします。",
+          zh: "移植后2–3周内移植毛暂时脱落的休止期脱落属正常现象,新发通常从3–4个月开始生长,9–12个月密度趋于稳定。术后一段时间需限制饮酒·吸烟·剧烈运动·桑拿。效果因人而异,请与医疗团队充分沟通,并要求提供经过照片与书面术后护理日程。",
+        },
+      },
+    ],
+    faq: [
+      {
+        q: { ko: "모발이식 후 흉터가 남나요?", en: "Will there be scarring after a hair transplant?", ja: "植毛後に傷跡は残りますか?", zh: "植发后会留疤吗?" },
+        a: {
+          ko: "비절개(FUE)는 점 형태의 미세 흔적만 남아 짧은 머리에도 눈에 잘 띄지 않습니다. 절개(FUT)는 채취 부위에 선형 흉터가 남을 수 있습니다. 방식별 차이를 의료진과 상담하세요.",
+          en: "FUE leaves only tiny dot-like marks, barely visible even with short hair. FUT may leave a linear scar at the donor site. Discuss the differences with your medical team.",
+          ja: "FUEは点状の微細な痕のみで、短髪でも目立ちにくいです。FUTは採取部位に線状の傷跡が残る場合があります。方式別の違いを医療陣にご相談ください。",
+          zh: "FUE仅留下点状细微痕迹,即使短发也不明显。FUT在供区可能留下线状疤痕。请就方式差异咨询医疗团队。",
+        },
+      },
+      {
+        q: { ko: "외국인도 통역 지원을 받을 수 있나요?", en: "Is interpreter support available for foreigners?", ja: "外国人も通訳サポートを受けられますか?", zh: "外国人能获得翻译支持吗?" },
+        a: {
+          ko: "외국인 환자 등록 의료기관에서는 영어·일본어·중국어 통역이 제공됩니다. 강남 일대에 다수 위치하며, 예약 시 통역 가능 언어를 먼저 확인하세요.",
+          en: "Foreign-patient-registered clinics provide English, Japanese, and Chinese interpretation, many located in Gangnam. Confirm available languages when booking.",
+          ja: "外国人患者登録医療機関では英・日・中語の通訳が提供されます。江南エリアに多数あり、予約時に対応言語をご確認ください。",
+          zh: "外国患者登记医疗机构提供英·日·中语翻译,多位于江南地区。预约时请先确认可提供的语言。",
+        },
+      },
+    ],
+  },
+  {
+    slug: "obesity",
+    specialty: "가정의학과",
+    title: {
+      ko: "한국 비만·체형 클리닉 가이드",
+      en: "Weight & Body Contouring Clinics in Korea",
+      ja: "韓国の肥満・ボディ管理クリニックガイド",
+      zh: "韩国减肥·体形管理诊所指南",
+    },
+    lede: {
+      ko: "한국의 비만·체형 클리닉은 내과·가정의학과 전문의의 의학적 평가를 기반으로 운영됩니다. 식이·운동 상담부터 의료기기 기반 체형관리까지 다양한 프로그램이 있으며, 모든 의료 행위는 의료법에 따른 정식 의료기관에서 이루어집니다.",
+      en: "Weight and body-contouring clinics in Korea operate on the basis of medical evaluation by internal medicine and family medicine specialists. Programs range from diet and exercise counseling to device-based body care, and all medical procedures take place at licensed institutions under the Medical Service Act.",
+      ja: "韓国の肥満・ボディ管理クリニックは、内科・家庭医学科専門医による医学的評価に基づいて運営されます。食事・運動相談から医療機器ベースのボディケアまで多様なプログラムがあり、すべての医療行為は医療法に基づく正規医療機関で行われます。",
+      zh: "韩国的减肥·体形管理诊所基于内科·家庭医学科专科医师的医学评估运营。项目涵盖饮食·运动咨询到基于医疗设备的体形管理,所有医疗行为均在依据医疗法的正规医疗机构进行。",
+    },
+    sections: [
+      {
+        heading: { ko: "프로그램 유형", en: "Program Types", ja: "プログラムの種類", zh: "项目类型" },
+        body: {
+          ko: "비만 클리닉의 프로그램은 크게 (1) 의학적 상담·검사 기반 체중관리 (2) 식이·생활습관 코칭 (3) 의료기기를 활용한 체형관리로 나뉩니다. 시작 전 기초대사량·체성분 검사, 혈액검사 등 건강 평가가 선행되는 것이 일반적입니다. 개인의 건강 상태에 따라 적합한 방법이 다르므로 반드시 전문의 상담을 거쳐야 합니다.",
+          en: "Obesity clinic programs broadly fall into (1) medically supervised weight management based on consultation and testing, (2) diet and lifestyle coaching, and (3) device-based body care. A health assessment — basal metabolic rate, body composition, blood tests — typically precedes any program. The right approach varies by individual health status, so a specialist consultation is essential.",
+          ja: "肥満クリニックのプログラムは大きく(1)医学的相談・検査ベースの体重管理(2)食事・生活習慣コーチング(3)医療機器を活用したボディ管理に分かれます。開始前に基礎代謝量・体成分検査、血液検査などの健康評価が先行するのが一般的です。個人の健康状態により適した方法が異なるため、必ず専門医相談が必要です。",
+          zh: "减肥诊所项目大致分为(1)基于医学咨询·检查的体重管理(2)饮食·生活习惯指导(3)利用医疗设备的体形管理。开始前通常先进行基础代谢量·体成分检查、血液检查等健康评估。适合的方法因个人健康状况而异,务必经过专科医师咨询。",
+        },
+      },
+      {
+        heading: { ko: "안전 수칙", en: "Safety Notes", ja: "安全に関する注意", zh: "安全须知" },
+        body: {
+          ko: "체중 감량은 의학적 관리하에 점진적으로 진행하는 것이 안전합니다. 처방이 필요한 의약품은 반드시 의사 진료 후 처방받아야 하며, 효과·부작용은 개인차가 있습니다. 과도한 단기 감량이나 검증되지 않은 방법은 건강에 해로울 수 있으므로, 의료진과 충분히 상담하고 정기적인 경과 관찰을 받는 것이 중요합니다.",
+          en: "Weight loss is safest when done gradually under medical supervision. Prescription medications must be prescribed only after a doctor's examination, and effects and side effects vary by individual. Excessive rapid weight loss or unverified methods can harm your health, so consult thoroughly with your medical team and undergo regular follow-up.",
+          ja: "減量は医学的管理のもとで段階的に進めるのが安全です。処方が必要な医薬品は必ず医師の診療後に処方を受ける必要があり、効果・副作用には個人差があります。過度な短期減量や検証されていない方法は健康に害を及ぼす可能性があるため、医療陣と十分相談し、定期的な経過観察を受けることが重要です。",
+          zh: "在医学管理下循序渐进地减重最为安全。需处方的药品必须经医师诊疗后开具,效果·副作用因人而异。过度短期减重或未经验证的方法可能损害健康,请与医疗团队充分沟通并接受定期复查。",
+        },
+      },
+    ],
+    faq: [
+      {
+        q: { ko: "비만 클리닉은 보험이 적용되나요?", en: "Is obesity treatment covered by insurance?", ja: "肥満クリニックは保険適用されますか?", zh: "减肥诊所适用医保吗?" },
+        a: {
+          ko: "미용·체형 목적의 관리는 대부분 비급여입니다. 다만 비만이 동반 질환(당뇨·고혈압 등) 치료와 연관된 경우 일부 급여가 적용될 수 있으니 의료기관에 확인하세요.",
+          en: "Cosmetic and body-shaping care is mostly out-of-pocket. However, if obesity is linked to treatment of comorbidities (diabetes, hypertension, etc.), some coverage may apply — check with the clinic.",
+          ja: "美容・ボディ目的の管理はほとんど自由診療です。ただし肥満が合併疾患(糖尿病・高血圧など)の治療に関連する場合、一部保険適用される場合があるため医療機関にご確認ください。",
+          zh: "美容·塑形目的的管理大多为自费。但如肥胖与合并症(糖尿病·高血压等)治疗相关,部分可能适用医保,请向医疗机构确认。",
+        },
+      },
+    ],
+  },
+  {
+    slug: "health-checkup",
+    specialty: "내과",
+    title: {
+      ko: "한국 건강검진 가이드 (종합검진·의료관광)",
+      en: "Health Checkups in Korea: Comprehensive Screening Guide",
+      ja: "韓国の健康診断ガイド (総合検診・医療観光)",
+      zh: "韩国体检指南 (综合体检·医疗旅游)",
+    },
+    lede: {
+      ko: "한국의 종합건강검진은 신속한 진행과 높은 정밀도로 의료관광객에게도 인기가 높습니다. 상급종합병원과 전문 검진센터가 영상검사·내시경·혈액검사 등을 하루 또는 1박 2일 패키지로 제공하며, 외국인 환자를 위한 다국어 검진 패키지도 운영됩니다.",
+      en: "Korea's comprehensive health checkups are popular among medical tourists for their speed and precision. Tertiary hospitals and dedicated screening centers offer imaging, endoscopy, and blood tests in one-day or two-day packages, including multilingual checkup packages for international patients.",
+      ja: "韓国の総合健康診断は、迅速な進行と高い精度で医療観光客にも人気です。上級総合病院や専門検診センターが画像検査・内視鏡・血液検査などを日帰りまたは1泊2日パッケージで提供し、外国人患者向けの多言語検診パッケージも運営されています。",
+      zh: "韩国的综合体检以高效快捷和高精度深受医疗游客欢迎。上级综合医院和专业体检中心以一日或两日套餐提供影像检查·内镜·血液检查等,并为外国患者运营多语言体检套餐。",
+    },
+    sections: [
+      {
+        heading: { ko: "검진 항목", en: "What's Included", ja: "検診項目", zh: "检查项目" },
+        body: {
+          ko: "기본 종합검진은 신체계측, 혈액·소변검사, 흉부 X선, 심전도, 복부 초음파, 위·대장 내시경을 포함하는 경우가 많습니다. 정밀 패키지에는 CT·MRI·PET-CT, 심장·뇌혈관 검사, 암표지자 검사 등이 추가됩니다. 연령·성별·가족력에 따라 권장 항목이 다르므로, 검진센터와 상담해 본인에게 맞는 구성을 선택하세요.",
+          en: "A basic comprehensive checkup often includes body measurements, blood/urine tests, chest X-ray, ECG, abdominal ultrasound, and gastric/colon endoscopy. Advanced packages add CT/MRI/PET-CT, cardiac and cerebrovascular tests, and tumor-marker screening. Recommended items vary by age, sex, and family history — consult the screening center to choose a fitting plan.",
+          ja: "基本的な総合検診は、身体計測、血液・尿検査、胸部X線、心電図、腹部超音波、胃・大腸内視鏡を含むことが多いです。精密パッケージにはCT・MRI・PET-CT、心臓・脳血管検査、腫瘍マーカー検査などが追加されます。年齢・性別・家族歴により推奨項目が異なるため、検診センターと相談してご自身に合った構成をお選びください。",
+          zh: "基础综合体检通常包括身体测量、血液·尿液检查、胸部X光、心电图、腹部超声、胃·肠内镜。精密套餐增加CT·MRI·PET-CT、心脏·脑血管检查、肿瘤标志物检查等。推荐项目因年龄·性别·家族史而异,请咨询体检中心选择适合自己的方案。",
+        },
+      },
+      {
+        heading: { ko: "예약과 결과", en: "Booking & Results", ja: "予約と結果", zh: "预约与结果" },
+        body: {
+          ko: "검진은 보통 사전 예약제로 운영되며, 위·대장 내시경 포함 시 전날 식이 조절과 장 정결제 복용이 필요합니다. 결과는 검진 후 1~2주 내 제공되며, 외국인 환자는 영문 결과지와 의사 소견서를 요청할 수 있습니다. 이상 소견 발견 시 동일 병원 내 진료과 연계가 가능한 곳을 선택하면 편리합니다.",
+          en: "Checkups are usually by advance reservation; if gastric/colon endoscopy is included, dietary restriction and bowel-prep the day before are required. Results are typically provided within 1–2 weeks, and international patients can request English result reports and a physician's opinion. Choosing a center that can refer you to in-house departments if abnormalities are found is convenient.",
+          ja: "検診は通常事前予約制で、胃・大腸内視鏡を含む場合は前日の食事制限と腸洗浄剤の服用が必要です。結果は検診後1〜2週間以内に提供され、外国人患者は英文結果票と医師の所見書を依頼できます。異常所見が見つかった場合に同一病院内の診療科へ連携できる施設を選ぶと便利です。",
+          zh: "体检通常采用预约制,如含胃·肠内镜,需前一天饮食控制并服用肠道清洁剂。结果一般在体检后1–2周内提供,外国患者可申请英文结果单与医师意见书。如发现异常,选择可在同院内转诊相关科室的机构较为便利。",
+        },
+      },
+    ],
+    faq: [
+      {
+        q: { ko: "외국인도 건강검진을 받을 수 있나요?", en: "Can foreigners get a health checkup?", ja: "外国人も健康診断を受けられますか?", zh: "外国人可以体检吗?" },
+        a: {
+          ko: "네, 다수의 상급종합병원과 검진센터가 외국인 전용 다국어 패키지를 운영합니다. 여권 지참이 필요하며, 영문 결과지 발급이 가능합니다.",
+          en: "Yes — many tertiary hospitals and screening centers run multilingual packages for foreigners. Bring your passport; English result reports are available.",
+          ja: "はい、多くの上級総合病院や検診センターが外国人専用の多言語パッケージを運営しています。パスポート持参が必要で、英文結果票の発行が可能です。",
+          zh: "可以,许多上级综合医院和体检中心运营外国人专用多语言套餐。需携带护照,可开具英文结果单。",
+        },
+      },
+    ],
+  },
 ];
 
 /** 모든 가이드에 공통으로 붙는 추가 섹션 (방문 전 체크리스트 + 예산 계획 + 의료법 안내) */
