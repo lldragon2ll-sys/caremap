@@ -103,6 +103,11 @@ export default async function LocaleLayout({
   return (
     <html lang={locale} className={`${inter.variable} ${jetbrains.variable}`}>
       <head>
+        {/* 폰트 CDN preconnect — Pretendard @import의 render-blocking 시간 단축 (LCP↓) */}
+        <link rel="preconnect" href="https://cdn.jsdelivr.net" crossOrigin="" />
+        <link rel="dns-prefetch" href="https://cdn.jsdelivr.net" />
+        {/* Supabase preconnect — 데이터 fetch 지연 감소 */}
+        <link rel="preconnect" href="https://ucygiwtbvcdberilcstb.supabase.co" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(orgLd) }}
